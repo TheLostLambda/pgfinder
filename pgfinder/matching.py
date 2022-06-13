@@ -1,7 +1,9 @@
 """Matching functions"""
+import re
 import logging
 from decimal import *
 
+import numpy as np
 import pandas as pd
 
 from pgfinder.logs.logs import LOGGER_NAME
@@ -522,3 +524,44 @@ def data_analysis(
     cleaned_data_df.attrs["ppm"] = user_ppm
 
     return cleaned_data_df
+
+
+def calculate_delta_ppm(
+    matched_df: pd.DataFrame,
+    theoretical_col: str = "theo_mwMonoisotopic",
+    observed_col: str = "mwMonoisotopic",
+    split_on: str = ",",
+) -> pd.DataFrame:
+    """Calculate the difference between theoretical and observed molecular weights.
+
+    Parameters
+    ----------
+    matched_df: pd.DataFrame
+        DataFrame of matched data (pre or post cleaning), should have two columns denoting the theoretical and observed
+    molecular weights.
+    theoretical_col: str
+        Column name for theoretical molecular weight.
+    observed_col: str
+        Column name for observed molecular weight.
+    split_on: str
+        Character to split columns on, default ',' (comma).
+
+    Returns
+    -------
+    pd.DataFrame
+        Returns the dataframe it was passed augmented with a 'delta_ppm' column indicating the difference between the
+    observed and theoretical molecular weight.
+    """
+    expanded_theoretical = matched_df[theoretical_col].str.split(split_on, expand=True)
+    expanded_theoretical[0] = expanded_theoretical[0].fillna(matched_df[theoretical_col])
+    expanded_theoretical = expanded_theoretical.astype("float")
+    max_matches = len(expanded_theoretical.index)
+    masses = pd.concat([matched_df[observed_col], expanded_theoretical], axis=1)
+    for column in np.arange(0, max_matches):
+        masses[f"ppm_{column}"] = (1000000 * (masses[column] - masses[observed_col])) / masses[column]
+        masses.drop(column, axis=1)
+    masses.drop(observed_col, axis=1, inplace=True)
+    masses.drop(range(0, max_matches), axis=1, inplace=True)
+    masses["delta_ppm"] = masses.apply(lambda row: ",".join(row.values.astype(str)), axis=1)
+
+    return pd.concat([matched_df, masses["delta_ppm"].str.replace(".nan", "")], axis=1)
