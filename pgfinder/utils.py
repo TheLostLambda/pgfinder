@@ -8,6 +8,7 @@ from pgfinder.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
+
 def convert_path(path: Union[str, Path]) -> Path:
     """Ensure path is Path object.
 
@@ -21,8 +22,7 @@ def convert_path(path: Union[str, Path]) -> Path:
     Path
         pathlib Path
     """
-    return Path().cwd() if path == './' else Path(path)
-
+    return Path().cwd() if path == "./" else Path(path)
 
 
 def update_config(config: dict, args: Union[dict, Namespace]) -> Dict:
