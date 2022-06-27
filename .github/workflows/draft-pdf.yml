@@ -1,3 +1,5 @@
+name: JOSS draft build
+
 on: [push]
 
 jobs:
