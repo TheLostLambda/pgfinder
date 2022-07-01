@@ -15,15 +15,9 @@ validation.validate_raw_data_df(masses)
 theo_masses = pgio.theo_masses_reader(csv_filepath)
 validation.validate_theo_masses_df(theo_masses)
 
-mod_test = ['Decay']
+mod_test = ["Decay"]
 
-results = matching.data_analysis(masses,theo_masses,0.5,mod_test,10,True)
-
-print (results)
+results = matching.data_analysis(masses, theo_masses, 0.5, mod_test, 10, True)
 
 
-    
-
-    
-
-#pgio.dataframe_to_csv_metadata(save_filepath='./', output_dataframe=results)
+# pgio.dataframe_to_csv_metadata(save_filepath='./', output_dataframe=results)

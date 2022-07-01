@@ -113,3 +113,8 @@ mass_to_clean:
   decay:
     parent: ^gm
     target: ^m
+
+adducts:
+  sodiated: 21.9819
+  potassated: 37.9559
+  decay: 203.0793

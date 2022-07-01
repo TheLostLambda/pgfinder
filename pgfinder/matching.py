@@ -139,7 +139,6 @@ def modification_generator(filtered_theo_df: pd.DataFrame, mod_type: str) -> pd.
         Pandas DataFrame of ???
     """
 
-    # FIXME : Replace with data structure such as dictionary
     mod_mass = Decimal(MOD_TYPE[mod_type]["mass"])
     mod_name = MOD_TYPE[mod_type]["name"]
 
@@ -255,20 +254,28 @@ def clean_up(ftrs_df: pd.DataFrame, mass_to_clean: Decimal, time_delta: float) -
     pd.DataFrame:
         ?
     """
+    print("\n\n##############\n\n")
+    print(f"[OLD] ftrs_df.columns  :\n{ftrs_df.columns}")
+    print(f"[OLD] ftrs_df.head()   :\n{ftrs_df.head()}")
     # Get the type of adduct based on the mass_to_clean (which is a float)
     adducts = {"sodiated": Decimal("21.9819"), "potassated": Decimal("37.9559"), "decay": Decimal("203.0793")}
     adducts_keys = list(adducts.keys())
     adducts_values = list(adducts.values())
     adduct = adducts_keys[adducts_values.index(mass_to_clean)]
+    print(f"[OLD] adducts          :\n{adducts}")
     # Selector substrings for generating parent and adduct dataframes
     parent = MASS_TO_CLEAN[adduct]["parent"]
     target = MASS_TO_CLEAN[adduct]["target"]
+    print(f"[OLD] parent        :\n{parent}")
+    print(f"[OLD] target        :\n{target}")
 
     # Generate parent dataframe - contains parents
     parent_muropeptide_df = ftrs_df.loc[ftrs_df["inferredStructure"].str.contains(parent, na=False)]
 
     # Generate adduct dataframe - contains adducts
     adducted_muropeptide_df = ftrs_df.loc[ftrs_df["inferredStructure"].str.contains(target, na=False)]
+    print(f"[OLD] parent_muropeptide_df        :\n{parent_muropeptide_df}")
+    print(f"[OLD] adducted_muropeptide_df      :\n{adducted_muropeptide_df}")
 
     # Generate copy of rawdata dataframe
     consolidated_decay_df = ftrs_df.copy()
@@ -331,6 +338,7 @@ def clean_up(ftrs_df: pd.DataFrame, mass_to_clean: Decimal, time_delta: float) -
 
     return consolidated_decay_df
 
+
 def clean_up_long(ftrs_df: pd.DataFrame, mass_to_clean: Decimal, time_delta: float) -> pd.DataFrame:
     """Clean up a DataFrame.
 
@@ -348,48 +356,72 @@ def clean_up_long(ftrs_df: pd.DataFrame, mass_to_clean: Decimal, time_delta: flo
     pd.DataFrame:
         ?
     """
+    print("\n\n##############\n\n")
+    print(f"[LONG] ftrs_df.columns  :\n{ftrs_df.columns}")
+    print(f"[LONG] ftrs_df.head()   :\n{ftrs_df.head()}")
+
     # Get the type of adduct based on the mass_to_clean (which is a float)
     adducts = {"sodiated": Decimal("21.9819"), "potassated": Decimal("37.9559"), "decay": Decimal("203.0793")}
     adducts_keys = list(adducts.keys())
     adducts_values = list(adducts.values())
     adduct = adducts_keys[adducts_values.index(mass_to_clean)]
+    print(f"[LONG] adduct          :\n{adduct}")
+    # This is a slightly more "pythonic" way of doing this, the other way is to switch what is a key and what is a value
+    # around in your adducts, since dictionaries are meant to work by looking up the key to find the value
+    for key, value in adducts.items():
+        if value == mass_to_clean:
+            adduct_p = key
+    print(f"[LONG] adduct (from parameters) :\n{adduct_p}")
     # Selector substrings for generating parent and adduct dataframes
     parent = MASS_TO_CLEAN[adduct]["parent"]
     target = MASS_TO_CLEAN[adduct]["target"]
+    print(f"[LONG] parent        :\n{parent}")
+    print(f"[LONG] target        :\n{target}")
 
     # Generate parent dataframe - contains parents
-    parent_muropeptide_df = ftrs_df.loc[ftrs_df["inferredStructure"].str.contains(parent, na=False)]
+    parent_df = ftrs_df.loc[ftrs_df["inferredStructure"].str.contains(parent, na=False)]
 
     # Generate adduct dataframe - contains adducts
-    adducted_muropeptide_df = ftrs_df.loc[ftrs_df["inferredStructure"].str.contains(target, na=False)]
+    adducted_df = ftrs_df.loc[ftrs_df["inferredStructure"].str.contains(target, na=False)]
 
-    print(parent_muropeptide_df)
-    print(adducted_muropeptide_df)
+    print(f"[LONG] parent_df        :\n{parent_df}")
+    print(f"[LONG] adducted_df      :\n{adducted_df}")
 
     # Generate copy of rawdata dataframe
     consolidated_decay_df = ftrs_df.copy()
 
     # Status updates (prints to console)
-    if parent_muropeptide_df.empty:
+    if parent_df.empty:
         LOGGER.info(f"No {parent}  muropeptides found")
-    if adducted_muropeptide_df.empty:
+    if adducted_df.empty:
         LOGGER.info(f"No {target} found")
     elif mass_to_clean == adducts["sodiated"]:
-        LOGGER.info(f"Processing {adducted_muropeptide_df.size} Sodium Adducts")
+        LOGGER.info(f"Processing {adducted_df.size} Sodium Adducts")
     elif mass_to_clean == adducts["potassated"]:
-        LOGGER.info(f"Processing {adducted_muropeptide_df.size} potassium adducts")
+        LOGGER.info(f"Processing {adducted_df.size} potassium adducts")
     elif mass_to_clean == adducts["decay"]:
-        LOGGER.info(f"Processing {adducted_muropeptide_df.size} in source decay products")
+        LOGGER.info(f"Processing {adducted_df.size} in source decay products")
 
+    constrained_df = adducted_df.loc[
+        adducted_df["rt"].between(adducted_df["rt"] - time_delta, adducted_df["rt"] + time_delta, inclusive="both")
+    ]
+
+    # By far the fastest way of finding out if you have a non-empty data frame is to check the length of the index
+    # because it has been "hashed" see timings at https://stackoverflow.com/a/15943975/1444043
+    if (len(constrained_df) > 0) & (target == "^m"):
+        constrained_df["inferredStructure"] = "g" + constrained_df["inferredStructure"].astype(str)
+
+    # iterrows() should be avoided at all costs as its performance doesn't scale well, see thread/post at
+    # https://stackoverflow.com/a/65356169/1444043 there is almost always a different way to do this.
     # Consolidate adduct intensity with parent ions intensity
-    for x, row in parent_muropeptide_df.iterrows():
+    for x, row in parent_df.iterrows():
         # Get retention time value from row
         rt = row.rt
-        #Get parent structure
+        # Get parent structure
         parent_structure = row.inferredStructure
-        #Get parent ID
+        # Get parent ID
         parent_ID = row.ID
-        #Get parent intensity
+        # Get parent intensity
         parent_intensity = row.maxIntensity
 
         # Work out rt window
@@ -397,10 +429,8 @@ def clean_up_long(ftrs_df: pd.DataFrame, mass_to_clean: Decimal, time_delta: flo
         lower_lim_rt = rt - time_delta
 
         # Get all adduct enteries within rt window
-        ins_constrained_df = adducted_muropeptide_df[
-            adducted_muropeptide_df["rt"].between(lower_lim_rt, upper_lim_rt, inclusive="both")
-        ]
-        
+        ins_constrained_df = adducted_df[adducted_df["rt"].between(lower_lim_rt, upper_lim_rt, inclusive="both")]
+
         if not ins_constrained_df.empty:
             if target == "^m":
                 ins_constrained_df["inferredStructure"] = "g" + ins_constrained_df["inferredStructure"].astype(str)
@@ -409,20 +439,26 @@ def clean_up_long(ftrs_df: pd.DataFrame, mass_to_clean: Decimal, time_delta: flo
             ins_structure = ins_row.inferredStructure
             ins_intensity = ins_row.maxIntensity
             if parent_structure == ins_structure:
-                #Get index to value to consolidate
+                # Get index to value to consolidate
                 idx = consolidated_decay_df.loc[consolidated_decay_df["inferredStructure"] == parent_structure].index[0]
-                #consolidate intensity value
+                # consolidate intensity value
                 consolidated_decay_df.at[idx, "maxIntensity"] = parent_intensity + ins_intensity
-                #get index of target to drop
+                # get index of target to drop
                 drop_idx = ins_constrained_df.loc[ins_constrained_df["inferredStructure"] == ins_structure].index[0]
-                #Drop target row
+                # Drop target row
                 consolidated_decay_df.drop(drop_idx, inplace=True)
 
     return consolidated_decay_df
 
+
 def data_analysis(
-    raw_data_df: pd.DataFrame, theo_masses_df: pd.DataFrame, rt_window: float, enabled_mod_list: list, user_ppm=int,
-long_format: bool = False) -> pd.DataFrame:
+    raw_data_df: pd.DataFrame,
+    theo_masses_df: pd.DataFrame,
+    rt_window: float,
+    enabled_mod_list: list,
+    user_ppm=int,
+    long_format: bool = False,
+) -> pd.DataFrame:
     """Perform analysis.
 
     Parameters
@@ -482,92 +518,99 @@ long_format: bool = False) -> pd.DataFrame:
 
     LOGGER.info("Generating variants")
 
-    if "Sodium" in enabled_mod_list:
-        adducts_sodium_df = modification_generator(obs_theo_df, "Sodium")
-    else:
-        adducts_sodium_df = pd.DataFrame()
+    # Rather than create empty pd.DataFrame() we can put the original obs_theo_df into master_list and append all enabled
+    # modifications by iterating over them and then pd.concat() to a list, greatly reducing the lines of code from multiple
+    # if: ... else: ... to three lines
+    master_list = [obs_theo_df]
+    for modification in enabled_mod_list:
+        master_list.append(modification_generator(obs_theo_df, modification))
+    # if "Sodium" in enabled_mod_list:
+    #     adducts_sodium_df = modification_generator(obs_theo_df, "Sodium")
+    # else:
+    #     adducts_sodium_df = pd.DataFrame()
 
-    if "Potassium" in enabled_mod_list:
-        adducts_potassium_df = modification_generator(obs_theo_df, "Potassium")
-    else:
-        adducts_potassium_df = pd.DataFrame()
+    # if "Potassium" in enabled_mod_list:
+    #     adducts_potassium_df = modification_generator(obs_theo_df, "Potassium")
+    # else:
+    #     adducts_potassium_df = pd.DataFrame()
 
-    if "Anh" in enabled_mod_list:
-        anhydro_df = modification_generator(obs_theo_df, "Anh")
-    else:
-        anhydro_df = pd.DataFrame()
+    # if "Anh" in enabled_mod_list:
+    #     anhydro_df = modification_generator(obs_theo_df, "Anh")
+    # else:
+    #     anhydro_df = pd.DataFrame()
 
-    if "DeAc" in enabled_mod_list:
-        deacetyl_df = modification_generator(obs_theo_df, "DeAc")
-    else:
-        deacetyl_df = pd.DataFrame()
+    # if "DeAc" in enabled_mod_list:
+    #     deacetyl_df = modification_generator(obs_theo_df, "DeAc")
+    # else:
+    #     deacetyl_df = pd.DataFrame()
 
-    if "DeAc_Anh" in enabled_mod_list:
-        deac_anhy_df = modification_generator(obs_theo_df, "DeAc_Anh")
-    else:
-        deac_anhy_df = pd.DataFrame()
-    if "O-Acetylated" in enabled_mod_list:
-        oacetyl_df = modification_generator(obs_theo_df, "O-Acetylated")
-    else:
-        oacetyl_df = pd.DataFrame()
+    # if "DeAc_Anh" in enabled_mod_list:
+    #     deac_anhy_df = modification_generator(obs_theo_df, "DeAc_Anh")
+    # else:
+    #     deac_anhy_df = pd.DataFrame()
+    # if "O-Acetylated" in enabled_mod_list:
+    #     oacetyl_df = modification_generator(obs_theo_df, "O-Acetylated")
+    # else:
+    #     oacetyl_df = pd.DataFrame()
 
-    if "Nude" in enabled_mod_list:
-        nude_df = modification_generator(obs_theo_df, "Nude")
-    else:
-        nude_df = pd.DataFrame()
+    # if "Nude" in enabled_mod_list:
+    #     nude_df = modification_generator(obs_theo_df, "Nude")
+    # else:
+    #     nude_df = pd.DataFrame()
 
-    if "Decay" in enabled_mod_list:
-        decay_df = modification_generator(obs_theo_df, "Decay")
-    else:
-        decay_df = pd.DataFrame()
+    # if "Decay" in enabled_mod_list:
+    #     decay_df = modification_generator(obs_theo_df, "Decay")
+    # else:
+    #     decay_df = pd.DataFrame()
 
-    if "Amidation" in enabled_mod_list:
-        ami_df = modification_generator(obs_theo_df, "Amidated")
-    else:
-        ami_df = pd.DataFrame()
+    # if "Amidation" in enabled_mod_list:
+    #     ami_df = modification_generator(obs_theo_df, "Amidated")
+    # else:
+    #     ami_df = pd.DataFrame()
 
-    if "Amidase" in enabled_mod_list:
-        deglyco_df = modification_generator(obs_theo_df, "Amidase Product")
-    else:
-        deglyco_df = pd.DataFrame()
+    # if "Amidase" in enabled_mod_list:
+    #     deglyco_df = modification_generator(obs_theo_df, "Amidase Product")
+    # else:
+    #     deglyco_df = pd.DataFrame()
 
-    if "Double_Anh" in enabled_mod_list:
-        double_Anhydro_df = modification_generator(obs_theo_df, "Double_Anh")
+    # if "Double_Anh" in enabled_mod_list:
+    #     double_Anhydro_df = modification_generator(obs_theo_df, "Double_Anh")
 
-    else:
-        double_Anhydro_df = pd.DataFrame()
+    # else:
+    #     double_Anhydro_df = pd.DataFrame()
 
-    master_list = [
-        obs_theo_df,
-        adducts_potassium_df,
-        adducts_sodium_df,
-        anhydro_df,
-        deac_anhy_df,
-        deacetyl_df,
-        oacetyl_df,
-        decay_df,
-        nude_df,
-        ami_df,
-        deglyco_df,
-        double_Anhydro_df,
-    ]
+    # master_list = [
+    #     obs_theo_df,
+    #     adducts_potassium_df,
+    #     adducts_sodium_df,
+    #     anhydro_df,
+    #     deac_anhy_df,
+    #     deacetyl_df,
+    #     oacetyl_df,
+    #     decay_df,
+    #     nude_df,
+    #     ami_df,
+    #     deglyco_df,
+    #     double_Anhydro_df,
+    # ]
     master_frame = pd.concat(master_list)
     master_frame = master_frame.astype({"Monoisotopicmass": float})
     LOGGER.info("Matching")
-    if long_format == False:
-        matched_data_df = matching(ff, master_frame, user_ppm)
-    elif long_format == True:
-        matched_data_df = matching_long(ff,master_frame,user_ppm)
-    LOGGER.info("Cleaning data")
-    if long_format == False:
-        cleaned_df = clean_up(ftrs_df=matched_data_df, mass_to_clean=sodium, time_delta=time_delta_window)
-        cleaned_df = clean_up(ftrs_df=cleaned_df, mass_to_clean=potassium, time_delta=time_delta_window)
-        cleaned_data_df = clean_up(ftrs_df=cleaned_df, mass_to_clean=sugar, time_delta=time_delta_window)
-    elif long_format == True:
-        cleaned_df = clean_up_long(ftrs_df=matched_data_df, mass_to_clean=sodium, time_delta=time_delta_window)
-        cleaned_df = clean_up_long(ftrs_df=cleaned_df, mass_to_clean=potassium, time_delta=time_delta_window)
-        cleaned_data_df = clean_up_long(ftrs_df=cleaned_df, mass_to_clean=sugar, time_delta=time_delta_window)
+    # if long_format:
+    matched_data_df = matching_long(ff, master_frame, user_ppm)
+    cleaned_df = clean_up_long(ftrs_df=matched_data_df, mass_to_clean=sodium, time_delta=time_delta_window)
+    cleaned_df = clean_up_long(ftrs_df=cleaned_df, mass_to_clean=potassium, time_delta=time_delta_window)
+    cleaned_data_df = clean_up_long(ftrs_df=cleaned_df, mass_to_clean=sugar, time_delta=time_delta_window)
+    # else:
+    matched_data_df = matching(ff, master_frame, user_ppm)
+    cleaned_df = clean_up(ftrs_df=matched_data_df, mass_to_clean=sodium, time_delta=time_delta_window)
+    cleaned_df = clean_up(ftrs_df=cleaned_df, mass_to_clean=potassium, time_delta=time_delta_window)
+    cleaned_data_df = clean_up(ftrs_df=cleaned_df, mass_to_clean=sugar, time_delta=time_delta_window)
+
     cleaned_data_df.sort_values("inferredStructure", inplace=True, ascending=True)
+    LOGGER.info("Data Cleaned")
+    # FIXME : This seems a strange way of doing things, it is more "pythonic" to simply iterate over a dictionary, as we have
+    # parameterised the adducts we should be able to loop over them.
 
     # set metadata
     cleaned_data_df.attrs["file"] = raw_data_df.attrs["file"]
