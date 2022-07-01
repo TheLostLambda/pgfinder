@@ -373,78 +373,12 @@ def data_analysis(
     obs_theo_df = pd.concat(obs_frames).reset_index(drop=True)
 
     LOGGER.info("Generating variants")
-
-    if "Sodium" in enabled_mod_list:
-        adducts_sodium_df = modification_generator(obs_theo_df, "Sodium")
-    else:
-        adducts_sodium_df = pd.DataFrame()
-
-    if "Potassium" in enabled_mod_list:
-        adducts_potassium_df = modification_generator(obs_theo_df, "Potassium")
-    else:
-        adducts_potassium_df = pd.DataFrame()
-
-    if "Anh" in enabled_mod_list:
-        anhydro_df = modification_generator(obs_theo_df, "Anh")
-    else:
-        anhydro_df = pd.DataFrame()
-
-    if "DeAc" in enabled_mod_list:
-        deacetyl_df = modification_generator(obs_theo_df, "DeAc")
-    else:
-        deacetyl_df = pd.DataFrame()
-
-    if "DeAc_Anh" in enabled_mod_list:
-        deac_anhy_df = modification_generator(obs_theo_df, "DeAc_Anh")
-    else:
-        deac_anhy_df = pd.DataFrame()
-    if "O-Acetylated" in enabled_mod_list:
-        oacetyl_df = modification_generator(obs_theo_df, "O-Acetylated")
-    else:
-        oacetyl_df = pd.DataFrame()
-
-    if "Nude" in enabled_mod_list:
-        nude_df = modification_generator(obs_theo_df, "Nude")
-    else:
-        nude_df = pd.DataFrame()
-
-    if "Decay" in enabled_mod_list:
-        decay_df = modification_generator(obs_theo_df, "Decay")
-    else:
-        decay_df = pd.DataFrame()
-
-    if "Amidation" in enabled_mod_list:
-        ami_df = modification_generator(obs_theo_df, "Amidated")
-    else:
-        ami_df = pd.DataFrame()
-
-    if "Amidase" in enabled_mod_list:
-        deglyco_df = modification_generator(obs_theo_df, "Amidase Product")
-    else:
-        deglyco_df = pd.DataFrame()
-
-    if "Double_Anh" in enabled_mod_list:
-        double_Anhydro_df = modification_generator(obs_theo_df, "Double_Anh")
-
-    else:
-        double_Anhydro_df = pd.DataFrame()
-
-    master_list = [
-        obs_theo_df,
-        adducts_potassium_df,
-        adducts_sodium_df,
-        anhydro_df,
-        deac_anhy_df,
-        deacetyl_df,
-        oacetyl_df,
-        decay_df,
-        nude_df,
-        ami_df,
-        deglyco_df,
-        double_Anhydro_df,
-    ]
+    master_list = [obs_theo_df]
+    for modification in enabled_mod_list:
+        master_list.append(modification_generator(obs_theo_df, modification))
     master_frame = pd.concat(master_list)
     master_frame = master_frame.astype({"Monoisotopicmass": float})
+
     LOGGER.info("Matching")
     matched_data_df = matching(ff, master_frame, user_ppm)
     LOGGER.info("Cleaning data")
