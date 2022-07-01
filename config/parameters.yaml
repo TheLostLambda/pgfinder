@@ -96,7 +96,7 @@ mod_type:
     name: gm-
   Amidation:
     mass: -0.9840
-    name: Amidated
+    name: (Amidated)
   Amidase:
     mass: -480.1955
     name: (Amidase Product)
