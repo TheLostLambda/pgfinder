@@ -65,6 +65,7 @@ multimer:
     Lac-AEJA-Lac-AEJA:
       mass: 1048.4560
       mult_num: 3
+
 mod_type:
   Anh:
     mass: -20.0262
@@ -93,10 +94,10 @@ mod_type:
   Nude:
     mass: 478.1799
     name: gm-
-  Amidated:
+  Amidation:
     mass: -0.9840
     name: Amidated
-  Amidase Product:
+  Amidase:
     mass: -480.1955
     name: (Amidase Product)
   Lactyl:
