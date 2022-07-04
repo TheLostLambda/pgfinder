@@ -359,6 +359,11 @@ def clean_up_long(ftrs_df: pd.DataFrame, mass_to_clean: Decimal, time_delta: flo
     print("\n\n##############\n\n")
     print(f"[LONG] ftrs_df.columns  :\n{ftrs_df.columns}")
     print(f"[LONG] ftrs_df.head()   :\n{ftrs_df.head()}")
+   
+
+    #Set inferredStructure column to string
+    ftrs_df = ftrs_df['inferredStructure'].astype("string")
+    print(f"[LONG ftrs_df.dtypes]   :\n{ftrs_df.dtypes}")
 
     # Get the type of adduct based on the mass_to_clean (which is a float)
     adducts = {"sodiated": Decimal("21.9819"), "potassated": Decimal("37.9559"), "decay": Decimal("203.0793")}
