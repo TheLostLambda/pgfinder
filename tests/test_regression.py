@@ -1,3 +1,5 @@
+"""Regression Tests."""
+from typing import List
 import pandas as pd
 import pytest
 import pgfinder.matching as matching
@@ -6,7 +8,7 @@ import pgfinder.validation as validation
 
 
 @pytest.fixture
-def theo_masses_file_name():
+def theo_masses_file_name() -> str:
     return "data/masses/e_coli_monomer_masses.csv"
 
 
@@ -16,21 +18,28 @@ def theo_masses_df(theo_masses_file_name):
 
 
 @pytest.fixture
-def mod_test():
-    """Modifications used in regression testing."""
+def mod_test_monomers() -> List:
+    """Monomer modifications used in regression testing."""
     return [
         "Sodium",
         "Potassium",
         "Anh",
         "DeAc",
         "DeAc_Anh",
+        # "O-Acetylated", # This isn't currently tested for.
         "Nude",
         "Decay",
         "Amidation",
         "Amidase",
         "Double_Anh",
-        "multimers_Glyco",
     ]
+
+
+@pytest.fixture
+def mod_test_multimers() -> List:
+    """Multimer modifcations used in regression testing."""
+    return ["multimers_Glyco"]  # What about other multimers such as "Multimers" and "Multimers_Lac" which haven't been
+    # previously tested?
 
 
 @pytest.fixture
@@ -63,13 +72,22 @@ def ftrs_baseline_df():
     return pd.read_csv("data/baseline_output_ftrs.csv", index_col=0)
 
 
-def test_matching_mq_baseline(mq_test_df, theo_masses_df, mod_test, mq_baseline_df, tmp_path):
-    """Test that output of the major function in the module is unchanged."""
+def test_matching_mq_baseline_monomers(
+    mq_test_df, theo_masses_df, mod_test_monomers, mod_test_multimers, mq_baseline_df, tmp_path
+):
+    """Test that output of the major function in the module is unchanged for monomers."""
 
     validation.validate_raw_data_df(mq_test_df)
     validation.validate_theo_masses_df(theo_masses_df)
 
-    results = matching.data_analysis(mq_test_df, theo_masses_df, 0.5, mod_test, 10)
+    results = matching.data_analysis(
+        raw_data_df=mq_test_df,
+        theo_masses_df=theo_masses_df,
+        rt_window=0.5,
+        enabled_monomers=mod_test_monomers,
+        enabled_multimers=mod_test_multimers,
+        user_ppm=10,
+    )
 
     output_filepath = pgio.dataframe_to_csv_metadata(
         save_filepath=tmp_path, output_dataframe=results, filename="output_mq.csv"
@@ -77,15 +95,25 @@ def test_matching_mq_baseline(mq_test_df, theo_masses_df, mod_test, mq_baseline_
     output_df = pd.read_csv(output_filepath, index_col=0)
 
     pd.testing.assert_frame_equal(output_df, mq_baseline_df)
+    assert False
 
 
-def test_matching_ftrs_baseline(ftrs_test_df, theo_masses_df, mod_test, ftrs_baseline_df, tmp_path):
+def test_matching_ftrs_baseline_monomers(
+    ftrs_test_df, theo_masses_df, mod_test_monomers, mod_test_multimers, ftrs_baseline_df, tmp_path
+):
     """Test that output of the major function in the module is unchanged."""
 
     validation.validate_raw_data_df(ftrs_test_df)
     validation.validate_theo_masses_df(theo_masses_df)
 
-    results = matching.data_analysis(ftrs_test_df, theo_masses_df, 0.5, mod_test, 10)
+    results = matching.data_analysis(
+        raw_data_df=ftrs_test_df,
+        theo_masses_df=theo_masses_df,
+        rt_window=0.5,
+        enabled_monomers=mod_test_monomers,
+        enabled_multimers=mod_test_multimers,
+        user_ppm=10,
+    )
 
     output_filepath = pgio.dataframe_to_csv_metadata(
         save_filepath=tmp_path, output_dataframe=results, filename="output_ftrs.csv"

@@ -73,15 +73,15 @@ def filtered_theo(ftrs_df: pd.DataFrame, theo_list: pd.DataFrame, user_ppm: int)
     return exploded_df
 
 
-def multimer_builder(theo_list, multimer_type: int = 0):
-    """Generate multimers (dimers & trimers) from observed monomers
+def multimer_builder(theo_list: pd.DataFrame, multimer_type: str = "peptide") -> pd.DataFrame:
+    """Generate multimers (dimers & trimers) from observed monomers.
 
     Parameters
     ----------
     theo_list:
         ??? (is it a list or dataframe, that a pd.DataFrame is returned suggests it should be the later?)
-    multimer_type: int
-
+    multimer_type: str
+        Multimer type to build, options are 'peptide' (default), 'gycosidic' and 'lactyl'.
     Returns
     -------
     pd.DataFrame
@@ -91,7 +91,6 @@ def multimer_builder(theo_list, multimer_type: int = 0):
     theo_mw = []
     theo_struct = []
     # Builder sub function - calculates multimer mass and name
-    # FIXME : No need to use nested functions
     def builder(name, mass, mult_num: int):
         for idx, row in theo_list.iterrows():
             if (
@@ -106,15 +105,8 @@ def multimer_builder(theo_list, multimer_type: int = 0):
 
     # Call builder subfunction with different arguements based on multimer type selected
     # and calculate multimers based on peptide bond through side chain
-    # if multimer_type is "peptide":
-    if multimer_type == 0:
-        multimer = MULTIMERS["peptide"]
-    # elif multimer_type is "gycosidic":
-    elif multimer_type == 1:
-        multimer = MULTIMERS["gycosidic"]
-    # elif multimer_type is "lactyl":
-    elif multimer_type == 2:
-        multimer = MULTIMERS["lactyl"]
+    multimer_type = "peptide" if multimer_type is None else multimer_type
+    multimer = MULTIMERS[multimer_type]
     LOGGER.info(f"Building features for multimer type : {multimer_type}")
     [builder(molecule, Decimal(features["mass"]), features["mult_num"]) for molecule, features in multimer.items()]
 
@@ -243,7 +235,6 @@ def clean_up(ftrs_df: pd.DataFrame, mass_to_clean: Decimal, time_delta: float) -
     # Selector substrings for generating parent and adduct dataframes
     parent = MASS_TO_CLEAN[adduct]["parent"]
     target = MASS_TO_CLEAN[adduct]["target"]
-
     # Generate parent dataframe - contains parents
     parent_muropeptide_df = ftrs_df.loc[ftrs_df["inferredStructure"].str.contains(parent, na=False)]
 
@@ -259,19 +250,19 @@ def clean_up(ftrs_df: pd.DataFrame, mass_to_clean: Decimal, time_delta: float) -
     if adducted_muropeptide_df.empty:
         LOGGER.info(f"No {target} found")
     elif mass_to_clean == adducts["sodiated"]:
-        LOGGER.info(f"Processing {adducted_muropeptide_df.size} Sodium Adducts")
+        LOGGER.info(f"Processing {adducted_muropeptide_df.size} Sodium adducts")
     elif mass_to_clean == adducts["potassated"]:
-        LOGGER.info(f"Processing {adducted_muropeptide_df.size} potassium adducts")
+        LOGGER.info(f"Processing {adducted_muropeptide_df.size} Potassium adducts")
     elif mass_to_clean == adducts["decay"]:
-        LOGGER.info(f"Processing {adducted_muropeptide_df.size} in source decay products")
+        LOGGER.info(f"Processing {adducted_muropeptide_df.size} source decay products")
 
     # Consolidate adduct intensity with parent ions intensity
+    counter = 0
     for y, row in parent_muropeptide_df.iterrows():
         # Get retention time value from row
         rt = row.rt
         # Get theoretical monoisotopic mass value from row as list of values
         intact_mw = list(str(row.theo_mwMonoisotopic).split(","))
-
         # Work out rt window
         upper_lim_rt = rt + time_delta
         lower_lim_rt = rt - time_delta
@@ -281,11 +272,9 @@ def clean_up(ftrs_df: pd.DataFrame, mass_to_clean: Decimal, time_delta: float) -
             adducted_muropeptide_df["rt"].between(lower_lim_rt, upper_lim_rt, inclusive="both")
         ]
         if not ins_constrained_df.empty:
-
             for z, ins_row in ins_constrained_df.iterrows():
                 # Having cells with multiple values causes headaches! Use long format, reshape and concatenate at end if needed
                 ins_mw = list(str(ins_row.theo_mwMonoisotopic).split(","))
-
                 # Compare parent masses to adduct masses
                 for mass in intact_mw:
                     for mass_2 in ins_mw:
@@ -302,18 +291,25 @@ def clean_up(ftrs_df: pd.DataFrame, mass_to_clean: Decimal, time_delta: float) -
                             drop_ID = ins_row.ID
                             idx = consolidated_decay_df.loc[consolidated_decay_df["ID"] == ID].index[0]
                             try:
+                                counter += 1
                                 drop_idx = consolidated_decay_df.loc[consolidated_decay_df["ID"] == drop_ID].index[0]
                                 consolidated_decay_df.at[idx, "maxIntensity"] = consolidated_intensity
                                 consolidated_decay_df.drop(drop_idx, inplace=True)
                             except IndexError:
-                                #     LOGGER.info(f"Already removed : {drop_idx}")
+                                # LOGGER.info(f"Already removed : {drop_idx}")
                                 pass
+    # consolidated_decay_df.sort(["ID"])
 
     return consolidated_decay_df
 
 
 def data_analysis(
-    raw_data_df: pd.DataFrame, theo_masses_df: pd.DataFrame, rt_window: float, enabled_mod_list: list, user_ppm=int
+    raw_data_df: pd.DataFrame,
+    theo_masses_df: pd.DataFrame,
+    rt_window: float,
+    enabled_monomers: list,
+    enabled_multimers: list,
+    user_ppm=int,
 ) -> pd.DataFrame:
     """Perform analysis.
 
@@ -325,8 +321,10 @@ def data_analysis(
         Theoretical masses as Pandas DataFrame.
     rt_window : float
         ?
-    enabled_mod_list : list
-        List of modules to enable.
+    enabled_monomers : list
+        List of monomers to be processed.
+    enabled_multimers : list
+        List of multimers to be processed.
     user_ppm : int
         ?
 
@@ -348,33 +346,34 @@ def data_analysis(
     LOGGER.info("Filtering theoretical masses by observed masses")
     obs_monomers_df = filtered_theo(ff, theo, user_ppm)
 
-    # FIXME : Is this the logic that is required? It seems only one type of multimers will ever get built but is it not
-    #         possible that there are multiple types listed in the enbaled_mod_list?
-    if "Multimers" in enabled_mod_list:
+    # FIXME : Is it possible to simplify this now that enabled_mod_list is split? It might perhaps require switching
+    #         enabled_multimers to be a dictionary with keys being the multimers and the values being multimer_type (but
+    #         if that could be changed to be paramterised based on the name rather than then number that would be
+    #         preferable).
+    if "Multimers" in enabled_multimers:
         LOGGER.info("Building multimers from obs muropeptides")
-        theo_multimers_df = multimer_builder(obs_monomers_df)
+        theo_multimers_df = multimer_builder(obs_monomers_df, "peptide")
         LOGGER.info("Filtering theoretical multimers by observed")
         obs_multimers_df = filtered_theo(ff, theo_multimers_df, user_ppm)
-    elif "multimers_Glyco" in enabled_mod_list:
+    elif "multimers_Glyco" in enabled_multimers:
         LOGGER.info("Building multimers from obs muropeptides")
-        theo_multimers_df = multimer_builder(obs_monomers_df, 1)
+        theo_multimers_df = multimer_builder(obs_monomers_df, "gycosidic")
         LOGGER.info("Filtering theoretical multimers by observed")
         obs_multimers_df = filtered_theo(ff, theo_multimers_df, user_ppm)
-    elif "Multimers_Lac" in enabled_mod_list:
+    elif "Multimers_Lac" in enabled_multimers:
         LOGGER.info("Building multimers_Lac from obs muropeptides")
-        theo_multimers_df = multimer_builder(obs_monomers_df, 2)
+        theo_multimers_df = multimer_builder(obs_monomers_df, "lactyl")
         LOGGER.info("Filtering theoretical multimers by observed")
         obs_multimers_df = filtered_theo(ff, theo_multimers_df, user_ppm)
     else:
         obs_multimers_df = pd.DataFrame()
 
     LOGGER.info("Building custom search file")
-    obs_frames = [obs_monomers_df, obs_multimers_df]
-    obs_theo_df = pd.concat(obs_frames).reset_index(drop=True)
+    obs_theo_df = pd.concat([obs_monomers_df, obs_multimers_df]).reset_index(drop=True)
 
     LOGGER.info("Generating variants")
     master_list = [obs_theo_df]
-    for modification in enabled_mod_list:
+    for modification in enabled_monomers:
         master_list.append(modification_generator(obs_theo_df, modification))
     master_frame = pd.concat(master_list)
     master_frame = master_frame.astype({"Monoisotopicmass": float})
@@ -391,7 +390,7 @@ def data_analysis(
     cleaned_data_df.attrs["file"] = raw_data_df.attrs["file"]
     cleaned_data_df.attrs["masses_file"] = theo_masses_df.attrs["file"]
     cleaned_data_df.attrs["rt_window"] = rt_window
-    cleaned_data_df.attrs["modifications"] = enabled_mod_list
+    cleaned_data_df.attrs["modifications"] = enabled_monomers + enabled_multimers
     cleaned_data_df.attrs["ppm"] = user_ppm
 
     return cleaned_data_df
