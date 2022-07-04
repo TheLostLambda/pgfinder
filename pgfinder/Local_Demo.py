@@ -17,7 +17,9 @@ validation.validate_theo_masses_df(theo_masses)
 
 mod_test = ["Decay"]
 
-results = matching.data_analysis(masses, theo_masses, 0.5, mod_test, 10, True)
+# results = matching.data_analysis(masses, theo_masses, 0.5, mod_test, 10, True)
 
+matched = matching.matching_long(masses,theo_masses,10)
+matching.clean_up_long(matched,Decimal('203.0793'),0.5)
 
 # pgio.dataframe_to_csv_metadata(save_filepath='./', output_dataframe=results)

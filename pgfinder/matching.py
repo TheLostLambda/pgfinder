@@ -414,40 +414,47 @@ def clean_up_long(ftrs_df: pd.DataFrame, mass_to_clean: Decimal, time_delta: flo
     # iterrows() should be avoided at all costs as its performance doesn't scale well, see thread/post at
     # https://stackoverflow.com/a/65356169/1444043 there is almost always a different way to do this.
     # Consolidate adduct intensity with parent ions intensity
-    for x, row in parent_df.iterrows():
-        # Get retention time value from row
-        rt = row.rt
-        # Get parent structure
-        parent_structure = row.inferredStructure
-        # Get parent ID
-        parent_ID = row.ID
-        # Get parent intensity
-        parent_intensity = row.maxIntensity
+    # for x, row in parent_df.iterrows():
+    #     # Get retention time value from row
+    #     rt = row.rt
+    #     # Get parent structure
+    #     parent_structure = row.inferredStructure
+    #     # Get parent ID
+    #     parent_ID = row.ID
+    #     # Get parent intensity
+    #     parent_intensity = row.maxIntensity
 
-        # Work out rt window
-        upper_lim_rt = rt + time_delta
-        lower_lim_rt = rt - time_delta
+    #     # Work out rt window
+    #     upper_lim_rt = rt + time_delta
+    #     lower_lim_rt = rt - time_delta
 
-        # Get all adduct enteries within rt window
-        ins_constrained_df = adducted_df[adducted_df["rt"].between(lower_lim_rt, upper_lim_rt, inclusive="both")]
+    #     # Get all adduct enteries within rt window
+    #     ins_constrained_df = adducted_df[adducted_df["rt"].between(lower_lim_rt, upper_lim_rt, inclusive="both")]
 
-        if not ins_constrained_df.empty:
-            if target == "^m":
-                ins_constrained_df["inferredStructure"] = "g" + ins_constrained_df["inferredStructure"].astype(str)
+    #     if not ins_constrained_df.empty:
+    #         if target == "^m":
+    #             ins_constrained_df["inferredStructure"] = "g" + ins_constrained_df["inferredStructure"].astype(str)
 
-        for y, ins_row in ins_constrained_df.iterrows():
-            ins_structure = ins_row.inferredStructure
-            ins_intensity = ins_row.maxIntensity
-            if parent_structure == ins_structure:
-                # Get index to value to consolidate
-                idx = consolidated_decay_df.loc[consolidated_decay_df["inferredStructure"] == parent_structure].index[0]
-                # consolidate intensity value
-                consolidated_decay_df.at[idx, "maxIntensity"] = parent_intensity + ins_intensity
-                # get index of target to drop
-                drop_idx = ins_constrained_df.loc[ins_constrained_df["inferredStructure"] == ins_structure].index[0]
-                # Drop target row
-                consolidated_decay_df.drop(drop_idx, inplace=True)
+    #     for y, ins_row in ins_constrained_df.iterrows():
+    #         ins_structure = ins_row.inferredStructure
+    #         ins_intensity = ins_row.maxIntensity
+    #         if parent_structure == ins_structure:
+    #             # Get index to value to consolidate
+    #             idx = consolidated_decay_df.loc[consolidated_decay_df["inferredStructure"] == parent_structure].index[0]
+    #             # consolidate intensity value
+    #             consolidated_decay_df.at[idx, "maxIntensity"] = parent_intensity + ins_intensity
+    #             # get index of target to drop
+    #             drop_idx = ins_constrained_df.loc[ins_constrained_df["inferredStructure"] == ins_structure].index[0]
+    #             # Drop target row
+    #             consolidated_decay_df.drop(drop_idx, inplace=True)
 
+    parent_structures = parent_df['inferredStructure'].tolist()
+    print(parent_df)
+    print(parent_structures)
+    for parent in parent_structures:
+        print(parent)
+        
+        
     return consolidated_decay_df
 
 
@@ -596,16 +603,16 @@ def data_analysis(
     master_frame = pd.concat(master_list)
     master_frame = master_frame.astype({"Monoisotopicmass": float})
     LOGGER.info("Matching")
-    # if long_format:
-    matched_data_df = matching_long(ff, master_frame, user_ppm)
-    cleaned_df = clean_up_long(ftrs_df=matched_data_df, mass_to_clean=sodium, time_delta=time_delta_window)
-    cleaned_df = clean_up_long(ftrs_df=cleaned_df, mass_to_clean=potassium, time_delta=time_delta_window)
-    cleaned_data_df = clean_up_long(ftrs_df=cleaned_df, mass_to_clean=sugar, time_delta=time_delta_window)
-    # else:
-    matched_data_df = matching(ff, master_frame, user_ppm)
-    cleaned_df = clean_up(ftrs_df=matched_data_df, mass_to_clean=sodium, time_delta=time_delta_window)
-    cleaned_df = clean_up(ftrs_df=cleaned_df, mass_to_clean=potassium, time_delta=time_delta_window)
-    cleaned_data_df = clean_up(ftrs_df=cleaned_df, mass_to_clean=sugar, time_delta=time_delta_window)
+    if long_format:
+        matched_data_df = matching_long(ff, master_frame, user_ppm)
+        cleaned_df = clean_up_long(ftrs_df=matched_data_df, mass_to_clean=sodium, time_delta=time_delta_window)
+        cleaned_df = clean_up_long(ftrs_df=cleaned_df, mass_to_clean=potassium, time_delta=time_delta_window)
+        cleaned_data_df = clean_up_long(ftrs_df=cleaned_df, mass_to_clean=sugar, time_delta=time_delta_window)
+    else:
+        matched_data_df = matching(ff, master_frame, user_ppm)
+        cleaned_df = clean_up(ftrs_df=matched_data_df, mass_to_clean=sodium, time_delta=time_delta_window)
+        cleaned_df = clean_up(ftrs_df=cleaned_df, mass_to_clean=potassium, time_delta=time_delta_window)
+        cleaned_data_df = clean_up(ftrs_df=cleaned_df, mass_to_clean=sugar, time_delta=time_delta_window)
 
     cleaned_data_df.sort_values("inferredStructure", inplace=True, ascending=True)
     LOGGER.info("Data Cleaned")
