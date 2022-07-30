@@ -22,7 +22,8 @@ def calc_ppm_tolerance(mw: float, ppm_tol: int = 10) -> float:
     Returns
     -------
     float
-        ?
+        Mass delta for molecular weight
+        
     """
     return (mw * ppm_tol) / 1000000
 
@@ -41,7 +42,7 @@ def filtered_theo(ftrs_df: pd.DataFrame, theo_list: pd.DataFrame, user_ppm: int)
     Returns
     -------
     pd.DataFrame
-        ?
+        theoretical structures and masses dataframe corresponding to observed masses
     """
     # Match theoretical structures to raw data to generate a list of observed structures
     matched_df = matching(ftrs_df, theo_list, user_ppm)
@@ -73,19 +74,19 @@ def filtered_theo(ftrs_df: pd.DataFrame, theo_list: pd.DataFrame, user_ppm: int)
     return exploded_df
 
 
-def multimer_builder(theo_list, multimer_type: int = 0):
+def multimer_builder(theo_df, multimer_type: int = 0):
     """Generate multimers (dimers & trimers) from observed monomers
 
     Parameters
     ----------
     theo_list:
-        ??? (is it a list or dataframe, that a pd.DataFrame is returned suggests it should be the later?)
+        theoretical monomer masses dataframe
     multimer_type: int
-
+        Sets type of multimer to build. 0 = peptide multimer, 1 = glycocidic multimer, 2 = Lactyl mulitmer
     Returns
     -------
     pd.DataFrame
-        ???
+        theoretical multimeric structures and corresponding masses dataframe
     """
 
     theo_mw = []
@@ -93,7 +94,7 @@ def multimer_builder(theo_list, multimer_type: int = 0):
     # Builder sub function - calculates multimer mass and name
     # FIXME : No need to use nested functions
     def builder(name, mass, mult_num: int):
-        for idx, row in theo_list.iterrows():
+        for idx, row in theo_df.iterrows():
             if (
                 len(row.Structure[: len(row.Structure) - 2]) > 2
             ):  # Prevent dimer creation using just gm (input format is XX|n) X = letters n = number
@@ -131,12 +132,12 @@ def modification_generator(filtered_theo_df: pd.DataFrame, mod_type: str) -> pd.
     filtered_theo_df : pd.DataFrame
         Pandas DataFrame of theoretical masses that have been filtered.
     mod_type : str
-        Modification type ???.
+        Modification type
 
     Returns
     -------
     pd.DataFrame
-        Pandas DataFrame of ???
+        Pandas DataFrame of theoretical monomers or dimers with modification applied
     """
 
     # FIXME : Replace with data structure such as dictionary
@@ -185,7 +186,7 @@ def matching(ftrs_df: pd.DataFrame, matching_df: pd.DataFrame, set_ppm: int):
     matching_df: pd.DataFrame
         Matching DataFrame
     set_ppm: int
-
+        ppm value used for matching theoretical masses to observed masses
     Returns
     -------
     pd.DataFrame
@@ -224,16 +225,16 @@ def clean_up(ftrs_df: pd.DataFrame, mass_to_clean: Decimal, time_delta: float) -
     Parameters
     ----------
     ftrs_df: pd.DataFrame
-        Features dataframe?
+        Features dataframe
     mass_to_clean: Decimal
         Mass to be cleaned.
     time_delta: float
-        ?
+        time value to define retention time range for consolidation of adducts to parent ions
 
     Returns
     -------
     pd.DataFrame:
-        ?
+        consolidated dataframe of features
     """
     # Get the type of adduct based on the mass_to_clean (which is a float)
     adducts = {"sodiated": Decimal("21.9819"), "potassated": Decimal("37.9559"), "decay": Decimal("203.0793")}
@@ -324,11 +325,11 @@ def data_analysis(
     theo_masses_df : pd.DataFrame
         Theoretical masses as Pandas DataFrame.
     rt_window : float
-        ?
+        time value to define retention time range for consolidation of adducts to parent ions
     enabled_mod_list : list
         List of modules to enable.
     user_ppm : int
-        ?
+        ppm value used for matching theoretical masses to observed masses
 
     Returns
     -------
