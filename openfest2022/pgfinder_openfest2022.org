@@ -1,0 +1,67 @@
+#    -*- mode: org -*-
+#+OPTIONS: reveal_width:1200 reveal_height:800
+#+OPTIONS: toc:1 timestamp: nil
+:REVEAL_PROPERTIES:
+#+REVEAL_ROOT: https://cdn.jsdelivr.net/npm/reveal.js
+#+REVEAL_REVEAL_JS_VERSION: 4
+:END:
+#+TITLE: PGFinder : OpenSource Software for Peptidoglycan Analysis
+#+AUTHOR: Neil Shephard
+#+EMAIL: n.shephard@sheffield.ac.uk
+
+* Why Care About Peptidoglycans?
+#+ATTR_REVEAL: :frag (roll-in) :frag-idx (5 4 3 2 1)
++ Molecules in membrane of Gram+ve bacteria.
++ Mediate exchange of DNA between cells (evolution).
++ Response to anti-bacterial drugs.
++ Therefore key to understanding...
+  + Antimicrobial Resistance (e.g. MRSA).
+  + Host-pathogen interactions.
+#+BEGIN_NOTES
+Do we need any notes here?
+#+END_NOTES
+* Why do we need _Peptidoglycomics_?
+#+ATTR_REVEAL: :frag (roll-in) :frag-idx (5 4 3 2 1)
++ Model and determine structure of molecules based on experimental data.
++ Traditionally done by "hand" in Excel.
++ Slow and time consuming as well as error prone.
++ PGFinder automates this process, improving accuracy and speed.
+#+BEGIN_NOTES
+Do we need any notes here?
+#+END_NOTES
+* PGFinder Development
+#+ATTR_REVEAL: :frag (roll-in) :frag-idx (5 4 3 2 1)
++ Initial work by [[mailto:ankur.patel@sheffield.ac.uk][Ankur Patel]] as PhD.
++ Implemented in [[https://python.org][Python]].
++ Runs in online Jupyter Notebooks.
+#+BEGIN_NOTES
+Do we need any notes here?
+#+END_NOTES
+* Unleash your Code
+#+ATTR_REVEAL: :frag (roll-in) :frag-idx (5 4 3 2 1)
++ Dedicated time from a Research Software Engineer.
++ Review code and make suggestions on improvements.
++ Improve quality of code...
+  + Documentation
+  + Tests
+  + Continuous Integration/Deployment
+  + Packaging and making available and open
+#+BEGIN_NOTES
+Do we need any notes here?
+#+END_NOTES
+* Open Source
+#+ATTR_REVEAL: :frag (roll-in) :frag-idx (5 4 3 2 1)
++ Encourages adoption.
++ Users can understand the algorithms.
++ Build a community, develop and extend.
+#+BEGIN_NOTES
+Do we need any notes here?
+#+END_NOTES
+* Metrics
+#+ATTR_REVEAL: :frag (roll-in) :frag-idx (5 4 3 2 1)
++ Issues Created ###
++ Pull Requests Opened ###
++ Pull Requests Closed ###
+#+BEGIN_NOTES
+Do we need any notes here?
+#+END_NOTES
