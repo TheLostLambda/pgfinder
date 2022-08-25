@@ -1,0 +1,181 @@
+---
+title: PGFinder - OpenSource Software for Peptidoglycan Analysis
+author: Neil Shephard
+email: n.shephard@sheffield.ac.uk
+format:
+  revealjs:
+    theme: night
+    incremental: true
+
+---
+
+::: {.incremental}
+## Why Care About Peptidoglycans?
++ Molecules in membrane of Gram+ve bacteria.
++ Mediate exchange of DNA between cells (evolution).
++ Response to anti-bacterial drugs.
++ Therefore key to understanding...
+  + Antimicrobial Resistance (e.g. MRSA).
+  + Host-pathogen interactions.
+:::
+::: {.notes}
+Do we need any notes here?
+:::
+
+::: {.incremental}
+## Why do we need _Peptidoglycomics_?
+
++ Model and determine structure of molecules based on experimental data.
++ Traditionally done by "hand" in Excel.
++ Slow and time consuming as well as error prone.
++ PGFinder automates this process, improving accuracy and speed.
+:::
+::: {.notes}
+Do we need any notes here?
+:::
+
+::: {.incremental}
+## PGFinder Development
+
+- Initial work by [Ankur Patel](mailto:ankur.patel@sheffield.ac.uk) as PhD.
+- Implemented in [Python](https://python.org).
+- Runs in online Jupyter Notebooks.
+:::
+::: {.notes}
+Do we need any notes here?
+:::
+
+::: {.incremental}
+## Unleash your Code
+
+- Dedicated time from a Research Software Engineer.
+- Review code and make suggestions on improvements.
+- Improve quality of code...
+  - Documentation
+  - Tests
+  - Continuous Integration/Deployment
+  - Packaging and making available and open
+:::
+::: {.notes}
+Do we need any notes here?
+:::
+
+::: {.incremental}
+## FAIR4RS^[FAIR Principles for Research Software (FAIR4RS Principles) [DOI: 10.15497/RDA00068](https://doi.org/10.15497/RDA00068)]
+
+- **F** _indable_
+- **A** _cessible_
+- **I** _nteroperable_
+- **R** _eusable_
+
+. . .
+
+Most can be applied directly to software but some special consideration required.
+
+:::
+::: {.notes}
+Do we need any notes here?
+:::
+
+::: {.incremental}
+## FAIR4RS - Findable
+
+- Global and unique identifier for both components and versions
+- Rich metadata
+-
+
+:::
+::: {.notes}
+See Pg 5 of [FAIR4RS](https://www.rd-alliance.org/system/files/FAIR4RS%20principles%20v1.0%20final.pdf)
+:::
+
+::: {.incremental}
+## FAIR4RS - Available
+
+- Global and unique identifier for both components and versions
+- Rich metadata
+- Available on University of Sheffield ORDA^[[DOI:
+  10.15131/shef.data.20101751.v1](https://doi.org/10.15131/shef.data.20101751.v1).]
+- Available on Python Package Index^[[PyPI : pgfinder](https://pypi.org/project/pgfinder/)]
+- Documented^[[documentation](https://mesnage-org.github.io/pgfinder/)] background, installation, usage and technical API reference.
+:::
+::: {.notes}
+See Pg 5 of [FAIR4RS](https://www.rd-alliance.org/system/files/FAIR4RS%20principles%20v1.0%20final.pdf)
+
+We have released PGFinder to both ORDA which is available via its DOI and the Pythin Package Index repository.
+:::
+
+::: {.incremental}
+## FAIR4RS - Interoperable
+
+- **TODO**
+
+:::
+::: {.notes}
+See Pg 5 of [FAIR4RS](https://www.rd-alliance.org/system/files/FAIR4RS%20principles%20v1.0%20final.pdf)
+:::
+
+::: {.incremental}
+## FAIR4RS - Reusable
+
+- **TODO**
+
+:::
+::: {.notes}
+See Pg 5 of [FAIR4RS](https://www.rd-alliance.org/system/files/FAIR4RS%20principles%20v1.0%20final.pdf)
+:::
+
+::: {.incremental}
+## Sustainability
+
+- Apply SOLID design principles
+- Introduced unit testing to ensure the modular components do not break.
+- Regression tests to ensure that alliance
+- Linting of code to [PEP8 - Python Style Guide](https://pep8.org/)
+- Identify technical debt where code holds back development.
+
+:::
+::: {.notes}
+Single use - function/method does a single task
+Open for extension, closed for modification
+Liskov Substitution Principle
+I
+D
+
+Unit tests save you time in the future if/when you modify code they ensure you do not break functionality at a granular
+level. So if a method is mean to return a particular value it ensure that if your changes do not do so you can quickly
+hone in on where you made the mistake. But components hang together and need to work with each other and not all logic
+of a system can be tested in such a manner and so regression tests are in place to ensure the whole process runs
+end-to-end and the same input gives the same output.
+
+Linting is a process of ensuring your code adheres to specific style guides, in this case the PEP8 (Python Enhancement
+Proposal) the most widely used Python style. This makes code easier to read in the future, whether that is yourself in
+six months or someone else in six years, as the layout and syntax is consistent and easier to follow.
+:::
+
+::: {.incremental}
+## Sustainability (_cont._)
+
+[GitHub Actions](https://docs.github.com/en/actions) to automate
+
+- Building and deployment of [documentation](https://mesnage-org.github.io/pgfinder/)
+- Running of tests.
+- Automate versioning^[[versioneer](https://github.com/python-versioneer/python-versioneer)]
+- Automate releases from GitHub to PyPI and ORDA (**In Progress**)
+
+:::
+::: {.notes}
+See Pg 5 of [FAIR4RS](https://www.rd-alliance.org/system/files/FAIR4RS%20principles%20v1.0%20final.pdf)
+:::
+
+::: {.incremental}
+## Metrics
+
+- Issues Created ###
+- Pull Requests Opened ###
+- Pull Requests Closed ###
+
+:::
+::: {.notes}
+Do we need any notes here?
+:::
