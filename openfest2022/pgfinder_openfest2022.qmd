@@ -4,45 +4,106 @@ author: Neil Shephard
 email: n.shephard@sheffield.ac.uk
 format:
   revealjs:
-    theme: night
+    theme: sky
     incremental: true
 
 ---
 
 ::: {.incremental}
-## Why Care About Peptidoglycans?
+## Structure
++ (Very) brief introduction to Peptodoglycans
++ Introduce Peptidoglycomics and `pgfinder`
++ Introduce FAIR4RS
++ Collaborating with RSE and moving `pgfinder` to FAIR4RS
+:::
+::: {.notes}
+Good morning/afternoon, my name is Neil Shephard and I'm a Research Software Engineer in the RSE team within the
+Computer Science department where I started back in April earlier this year.
+
+Today I'm going to be talking about a piece of software I've been collaborating with Stephan Mesnage's team in the
+School of Biosciences on called `pgfinder`.
+
+I'll give a very brief intro to Peptidoglycans because I know very little about the underlying molecular biology
+that underpins this work, in my defence its been over 20 years since I studied molecular biology and undergraduate
+level.
+
+I'll then introduce the software `pgfinder` and the concept of Peptidoglycomics followed by an overview of the FAIR4RS
+principles, an extensions of the FAIR principles before going on to describe how we have improved `pgfinder`'s open-ness
+to comply with the FAIR4RS principles.
+:::
+
+
+::: {.incremental}
+## What Are Peptidoglycans?
 + Molecules in membrane of Gram+ve bacteria.
-+ Mediate exchange of DNA between cells (evolution).
++ Mediate exchange of DNA between cells.
 + Response to anti-bacterial drugs.
 + Therefore key to understanding...
   + Antimicrobial Resistance (e.g. MRSA).
   + Host-pathogen interactions.
 :::
 ::: {.notes}
-Do we need any notes here?
+So, what are Peptidoglycans and why are they of interest and being studied?
+
+Peptidoglycans are molecules that reside in the membrane of gram positive bacteria where they carry out two
+roles. They're quite large molecules made up of multiple smaller sub-units of different types.
+
+They mediate the exchange of DNA between bacterial cells and therefore have a role the evolution of bacteria.
+
+These molecules also mediate bacterial cells interaction with anti-bacterial drugs.
+
+Currently the structural organisation and binding mechanism is poorly understood, but improving this knowledge is
+important because doing so would improve our understanding of antimicrobial drug resistance, for example MRSA that
+plagues many of our hospitals these days, and to host-pathogen interactions.
 :::
 
 ::: {.incremental}
-## Why do we need _Peptidoglycomics_?
-
-+ Model and determine structure of molecules based on experimental data.
-+ Traditionally done by "hand" in Excel.
-+ Slow and time consuming as well as error prone.
-+ PGFinder automates this process, improving accuracy and speed.
+## What Are Peptidoglycans? (_cont._)
+![](peptidoglycan_structure.png)
 :::
 ::: {.notes}
-Do we need any notes here?
+
 :::
+::: {.incremental}
+## _Peptidoglycomics_?
+
++ Identify molecules via Reversed-Phase [High-Performance Liquid
+  Chromatography](https://en.wikipedia.org/wiki/High-performance_liquid_chromatography) and Mass Spectroscopy.
+![](peptidoglycan_rphplc_mass_spec.png)
+
+:::
+::: {.notes}
+Analysis uses Reversed-Phase High-Performance Liquid Chromatography to identify the molecules present
+:::
+
+::: {.incremental}
+## _Peptidoglycomics_
+
+![PGFinder Workflow](flow_diagram.png)
+
+:::
+::: {.notes}
+This flow-diagram shows the process of matching these peaks to known monomers, then the dimers and trimers that
+they might form along with the possible modifications and forms the basis of the algorithms `pgfinder` has implemented.
+
+Traditionally this process was done by hand using Excel spreadsheets, as you can imagine this is a slow, laborious
+process that is prone to errors. PGFinder automates this process, massively reducing the possibility of errors and
+vastly increasing the speed at which matching is done.
+:::
+
 
 ::: {.incremental}
 ## PGFinder Development
 
-- Initial work by [Ankur Patel](mailto:ankur.patel@sheffield.ac.uk) as PhD.
+- Initial work by [Ankur Patel](mailto:ankur.patel@sheffield.ac.uk).
 - Implemented in [Python](https://python.org).
-- Runs in online Jupyter Notebooks.
+- Available as command line tool and online Jupyter Notebooks in Binder.
 :::
 ::: {.notes}
-Do we need any notes here?
+Initial development was done by Ankur Patel as part of his PhD with Stephane. The code is implemented in Python which is
+a general purpose interpretted programming language which allows for rapid development and testing cycle. It has a
+relatively low barrier to entry which is facilitated by tools such as Jupyter Notebooks which run in web-browsers and
+allow users to run and interact with code.
 :::
 
 ::: {.incremental}
@@ -50,14 +111,18 @@ Do we need any notes here?
 
 - Dedicated time from a Research Software Engineer.
 - Review code and make suggestions on improvements.
-- Improve quality of code...
+- Improve quality of code to meet FAIR4RS principles...
   - Documentation
   - Tests
   - Continuous Integration/Deployment
   - Packaging and making available and open
 :::
 ::: {.notes}
-Do we need any notes here?
+The Unleash your code initiative allowed the project to involve a dedicated Research Software Engineer (that's me) to
+help with improving the code base. The purpose of my involvement was two fold, firstly to review the code and make
+suggestions for technical improvements and removal of technical debt and secondly to improve the accssibility of the
+software in line with the FAIR4RS principles. This involved improving documentation, adding unit and regression
+tests, implementing Continuous Inegration/Deployment strategies and making the package more easily available.
 :::
 
 ::: {.incremental}
@@ -74,41 +139,67 @@ Most can be applied directly to software but some special consideration required
 
 :::
 ::: {.notes}
-Do we need any notes here?
+FAIR For Research Software principles. Hands up who has heard of the FAIR principles *pause* and keep your hands raised
+if you've heard of the FAIR4RS principles *pause*. Well the FAIR4RS principles are an extension of the FAIR principles
+for data that many of you will be familiar with
 :::
 
 ::: {.incremental}
 ## FAIR4RS - Findable
 
-- Global and unique identifier for both components and versions
-- Rich metadata
--
+- Global and unique identifiers.
+- Both components (e.g. modular software).
+- Different versions have unique identifiers.
+- Rich metadata.
 
+. . .
+
+- PGFinder released to Sheffield ORDA ([10.15131/shef.data.20101751](https://10.15131/shef.data.20101751)) and Python
+Package Index ([PyPI](https://pypi.org/project/pgfinder/))
 :::
 ::: {.notes}
-See Pg 5 of [FAIR4RS](https://www.rd-alliance.org/system/files/FAIR4RS%20principles%20v1.0%20final.pdf)
+Software should have global and unique identifiers for both components, if for example software is split across a number
+of related packages, and for different versions of software that have been released.
+
+They should include rich metadata describing the software and that metadata should include the unique identifiers.
 :::
 
 ::: {.incremental}
 ## FAIR4RS - Available
 
-- Global and unique identifier for both components and versions
-- Rich metadata
-- Available on University of Sheffield ORDA^[[DOI:
-  10.15131/shef.data.20101751.v1](https://doi.org/10.15131/shef.data.20101751.v1).]
-- Available on Python Package Index^[[PyPI : pgfinder](https://pypi.org/project/pgfinder/)]
-- Documented^[[documentation](https://mesnage-org.github.io/pgfinder/)] background, installation, usage and technical API reference.
+Code should be available to
+- Access and review
+- Use
+- Modify and extend
+
+. . .
+
+- ORDA and PyPI facilitate this.
+- Code licensed under GNU GPLv3 and available on GitHub at
+  [Mesnage-Org/pgfinder](https://github.com/Mesnage-Org/pgfinder)
+- Documentation available at [pgFinder 0.0.1 documentation](https://mesnage-org.github.io/pgfinder/)
 :::
 ::: {.notes}
-See Pg 5 of [FAIR4RS](https://www.rd-alliance.org/system/files/FAIR4RS%20principles%20v1.0%20final.pdf)
+Code should be available for users to access and review so they can understand verify at the level of the code what it
+is doing.
+At the same time it should be available for use, and a particularly important component of usability is that there is
+documentation that describes how to install and use the software.
 
-We have released PGFinder to both ORDA which is available via its DOI and the Pythin Package Index repository.
+Making PGFinder available via ORDA and PyPI means users can download and install the software, but it is also available
+via the code-sharing website GitHub which means that users can inspect the source code directly and download it and if
+inclined to do so submit improvements or corrections if they find errors.
+
+At the same time we have documented the package in a web-page that details how to install and use it with examples
+included. The website also documents the API, which is the individual commands that form the whole package, and the
+web-pages are built and deployed automatically via GitHub Actions which is a method of Continuous Integration such that
+changes to the documentation automatically update.
 :::
 
 ::: {.incremental}
 ## FAIR4RS - Interoperable
 
-- **TODO**
+- Software should read/write/exchange data in a manner that conforms to community standards.
+-
 
 :::
 ::: {.notes}
@@ -118,7 +209,10 @@ See Pg 5 of [FAIR4RS](https://www.rd-alliance.org/system/files/FAIR4RS%20princip
 ::: {.incremental}
 ## FAIR4RS - Reusable
 
-- **TODO**
+- Accessible license Making the code open-source means others can fix and extend if inclined to do so.
+- Version control via Git means there is a traceable record of changes that have been made, much like lab-books record
+  what has been done in the laboratory.
+- Includes references to other software.
 
 :::
 ::: {.notes}
@@ -126,24 +220,15 @@ See Pg 5 of [FAIR4RS](https://www.rd-alliance.org/system/files/FAIR4RS%20princip
 :::
 
 ::: {.incremental}
-## Sustainability
+## Sustainability - Testing
 
-- Apply SOLID design principles
-- Introduced unit testing to ensure the modular components do not break.
-- Regression tests to ensure that alliance
-- Linting of code to [PEP8 - Python Style Guide](https://pep8.org/)
-- Identify technical debt where code holds back development.
+- Unit testing to ensure the functions are consistent (using [pytest](https://docs.pytest.org/en/latest/)).
+- Regression tests to ensure that the end-to-end ([pytest-regtest](https://gitlab.com/uweschmitt/pytest-regtest))
 
 :::
 ::: {.notes}
-Single use - function/method does a single task
-Open for extension, closed for modification
-Liskov Substitution Principle
-I
-D
-
 Unit tests save you time in the future if/when you modify code they ensure you do not break functionality at a granular
-level. So if a method is mean to return a particular value it ensure that if your changes do not do so you can quickly
+level. So if a method is meant to return a particular value it ensure that if your changes do not do so you can quickly
 hone in on where you made the mistake. But components hang together and need to work with each other and not all logic
 of a system can be tested in such a manner and so regression tests are in place to ensure the whole process runs
 end-to-end and the same input gives the same output.
@@ -154,26 +239,76 @@ six months or someone else in six years, as the layout and syntax is consistent 
 :::
 
 ::: {.incremental}
-## Sustainability (_cont._)
+## Sustainability - Linting & Technical Debt
 
-[GitHub Actions](https://docs.github.com/en/actions) to automate
-
-- Building and deployment of [documentation](https://mesnage-org.github.io/pgfinder/)
-- Running of tests.
-- Automate versioning^[[versioneer](https://github.com/python-versioneer/python-versioneer)]
-- Automate releases from GitHub to PyPI and ORDA (**In Progress**)
+- Linting of code to [PEP8 - Python Style Guide](https://pep8.org/).
+- Identified technical debt where code holds back development.
 
 :::
 ::: {.notes}
-See Pg 5 of [FAIR4RS](https://www.rd-alliance.org/system/files/FAIR4RS%20principles%20v1.0%20final.pdf)
+Linting is a process of ensuring your code adheres to specific style guides, in this case the Python Enhancement
+Proposal number 8 (or just PEP8) which is the most widely used Python style. This makes code easier for yourself in the
+future and others to read, as the layout and syntax is consistent and easier to follow.
+
+Technical debt occurs when short-cut solutions are used that work and give the desired answer, but can make subsequent
+development harder in the future. We identified just such a problem with the way the data was being structured in
+PGFinder that meant that what should have been simple changes took a lot more effort to implement.
+
+Ankur is currently working on refactoring the code to work with a more efficient data structure which means subsequent
+development will be easier and having the regression tests in place prior to starting this work has really paid off here
+as it means we know the changes that are being made aren't affecting the overall functioning of the software.
 :::
 
 ::: {.incremental}
-## Metrics
+## Sustainability - Automation
 
-- Issues Created ###
-- Pull Requests Opened ###
-- Pull Requests Closed ###
+[GitHub Actions](https://docs.github.com/en/actions) for Continuous Integration/Continuous Development which automates...
+
+- Building and deployment of [documentation](https://mesnage-org.github.io/pgfinder/)
+- Running of tests automatically prior to Pull Requests which incorporate changes into the main code-base.
+- Automate versioning^[[versioneer](https://github.com/python-versioneer/python-versioneer)]
+- Automate releases from GitHub to PyPI and ORDA (**In Progress**)
+
+. . .
+
+Planning more...
+
+- Linting using [pre-commit](https://pre-commit.com)
+-
+
+:::
+::: {.notes}
+The automation of processes through Continuous Integration and Development frees up time for the developers from having
+to run repetitive steps each time certain tasks
+:::
+
+
+::: {.incremental}
+## GitHub Metrics
+
+|               | Created/Opened | Closed |
+|:--------------|:---------------|:-------|
+| Issues        | 60             | 47     |
+| Pull Requests | 68             | 65       |
+
+:::
+::: {.notes}
+Git collaboration works by creating small focused issues detailing improvements that can be made to the code
+based. These are then addressed by individuals on branches which are then merged back into the main branch that people
+use once the work has been completed. Since my involvement we have created ## issues, made ## pull requests and closed
+almost all of these.
+
+The work has been enjoyable and productive for all those involved and the lead researcher Stephan Mesnage is keen to
+continue embedding the software development practises that have been implemented to date in the on-going development
+that will be undertaken by future researchers.
+:::
+
+::: {.incremental}
+## Summary
+
+- Taken a slow, manual process and started the process of automating it.
+- Done so in an open-source manner to make the code transparent to others and encourage development and collaboration.
+- Unleash Your Data has facilitated this through collaboration with Research Software Engineers.
 
 :::
 ::: {.notes}
