@@ -60,7 +60,7 @@ roles. They're quite large molecules made up of multiple smaller sub-units of di
 
 They mediate the exchange of DNA between bacterial cells and therefore have a role the evolution of bacteria.
 
-These molecules also mediate bacterial cells interaction with anti-bacterial drugs.
+They also mediate interaction with anti-bacterial drugs and gut-flora-host interaction
 
 Currently the structural organisation and binding mechanism is poorly understood, but improving this knowledge is
 important because doing so would improve our understanding of antimicrobial drug resistance, for example MRSA that

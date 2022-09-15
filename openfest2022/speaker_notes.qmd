@@ -14,15 +14,17 @@ format:
 * Good Afternoon, my name is Neil Shephard and I'm a Research Software Engineer in the RSE team within the
 Computer Science department.
 
-* Today I'm going to be talking about a piece of software I've been collaborating on with Stephan Mesnage's team in the
-School of Biosciences called `PGFinder`.
+* I've not done this work in isolation and would like to acknowledge and thank my collaborators and co-workers Stephan
+  Mesnage, Ankur Patel, and Bob Turner as well as the University Library who funded Unleash Your Data and Software.
 
-* I'll give a very brief intro to Peptidoglycans because I know very little about the underlying molecular biology
-that underpins this work, in my defence its been over 20 years since I studied molecular biology and undergraduate
-level.
+* Today I'm going to be talking about a piece of software I've been collaborating on with Stephan Mesnage's team in the
+  School of Biosciences called `PGFinder`.
+
+* I'll give a very brief intro to Peptidoglycans because I know very little about the underlying molecular biology that
+  underpins this work, in my defence its been over 20 years since I studied molecular biology and undergraduate level.
 
 * I'll then introduce the software `PGFinder` and the concept of Peptidoglycomics and describe how we have moved the
-package to be more compliant with the FAIR For Research Software principles.
+  package to be more compliant with the FAIR For Research Software principles.
 
 
 
@@ -35,11 +37,10 @@ roles. They're quite large molecules made up of multiple smaller sub-units of di
 
 * They mediate the exchange of DNA between bacterial cells and therefore have a role the evolution of bacteria.
 
-* These molecules also mediate bacterial cells interaction with anti-bacterial drugs.
+* They also mediate interaction with anti-bacterial drugs and gut-flora-host interaction.
 
-* Currently the structural organisation and binding mechanism is poorly understood, but improving this knowledge is
-important because doing so would improve our understanding of antimicrobial drug resistance, for example MRSA that
-plagues many of our hospitals these days, and to host-pathogen interactions.
+* But currently the structural organisation and binding mechanism is poorly understood, an improving knowledge is
+important because doing so would improve our understanding of these important areas.
 
 
 
@@ -109,7 +110,8 @@ strategies and making the package more easily available.
 * and keep your hands raised if you've heard of the FAIR for Research Software principles
 
 * Thank you, the FAIR4RS principles are an extension of the FAIR principles for data that many of you will be familiar
-  with but with a particular focus on research software.
+  with but with the software should be Findable, Interoperable and Accessible but with a particular focus that address
+  features of software.
 
 
 
@@ -125,7 +127,7 @@ of related packages, and for different versions of software that have been relea
   Identifier.
 
 * At the same time we have released the package the Python Package Index, a site for sharing and installing Python
-  packages with the world.
+  packages with the world and this helps lower the barrier for others to install and use the software.
 
 ## FAIR4RS - Available
 
@@ -157,22 +159,24 @@ included. The website also documents the API, which is the individual commands t
 
 ## FAIR4RS - Reusable
 
-Having an open-source license makes the software reusable as others are free to modify and extend the software.
+* Having an open-source license makes the software reusable as others are free to modify and extend the software.
 
-The code is accessible via GitHub and has been version controlled which provides a traceable record of the changes that
-have been made over time, in much the same manner as laboratory books record the steps taken in lab based experiments.
+* The code is accessible via GitHub and has been version controlled which provides a traceable record of the changes
+  that have been made over time, in much the same manner as laboratory books record the steps taken in lab based
+  experiments.
 
 
 ## Sustainability - Testing
 
 
 * Unit tests save you time in the future if/when you modify code they ensure you do not break functionality. So if a
-method is meant to return a particular value it ensure that if your changes do not do so you can quickly hone in on
-where you made the mistake.
+  method is meant to return a particular value it ensure that if your changes do not do so you can quickly hone in on
+  where you made the mistake.
 
-* But components hang together and need to work with each other and not all logic of a system
-can be tested in such a manner and so regression tests are in place to ensure the whole process runs end-to-end and the
-same input gives the same output.
+* But components hang together and need to work with each other and not all logic of a system can be tested in such a
+  manner and so regression tests are in place to ensure the whole process runs end-to-end and the same input gives the
+  same output.
+
 
 
 
@@ -222,8 +226,9 @@ implemented..
 
 * Git collaboration works by creating small focused issues detailing improvements that can be made to the code
 based. These are then addressed by individuals on branches which are then merged back into the main branch that people
-use once the work has been completed. Since my involvement we have created ## issues, made ## pull requests and closed
-almost all of these.
+use once the work has been completed. Since the work started there have been 60 issues created of which 47 (78%) have
+been closed. You close issues by making pull requests to incorporate changes you've made on your branch into the main
+code and we've had 68 pull requests so far with only three outstanding (4%).
 
 * The work has been enjoyable and productive for all those involved and the lead researcher Stephan Mesnage is keen to
 continue embedding the software development practises that have been implemented to date in the on-going development
