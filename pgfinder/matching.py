@@ -1,9 +1,11 @@
 """Matching functions"""
 import logging
 from decimal import Decimal
-from pgfinder import MULTIMERS, MOD_TYPE, MASS_TO_CLEAN
+
+import numpy as np
 import pandas as pd
 
+from pgfinder import MULTIMERS, MOD_TYPE, MASS_TO_CLEAN
 from pgfinder.logs.logs import LOGGER_NAME
 
 LOGGER = logging.getLogger(LOGGER_NAME)
@@ -453,6 +455,9 @@ def data_analysis(
     LOGGER.info("Cleaning data")
 
     matched_data_df = calculate_ppm_delta(df=matched_data_df)
+    matched_data_df = determine_most_likely_structure(
+        matched_data_df.reset_index(),
+    )
 
     cleaned_df = clean_up(ftrs_df=matched_data_df, mass_to_clean=sodium, time_delta=time_delta_window)
     cleaned_df = clean_up(ftrs_df=cleaned_df, mass_to_clean=potassium, time_delta=time_delta_window)
@@ -505,3 +510,93 @@ def calculate_ppm_delta(
     df.insert(theoretical_position, diff, (1000000 * (df[observed] - df[theoretical])) / df[theoretical])
     LOGGER.info("Difference in PPM calculated.")
     return df
+
+
+def determine_most_likely_structure(
+    df: pd.DataFrame, id: str = "ID", diff: str = "diff_ppm", intensity: str = "maxIntensity"
+) -> pd.DataFrame:
+    """Determine the most likely structure.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        Pandas Data frame for modification.
+    id: str
+        Variable (column) within dataframe that defines the molecule identifier.
+    diff: str
+        Variable (column) within the dataframe that defines the difference in Parts Per Million (PPM). Default
+    'diff_ppm'.capitalize
+    intensity: str
+        Variable (column) within dataframe that defines the intensity associated with matches.
+
+    Returns
+    -------
+    pd.DataFrame
+        Pandas Dataframe augmented with columns showing the most likely match (`lowest_ppm`) and the associated maximum
+    intensity. The rows are sorted by molecule ID and ordered by the absolute difference in PPM within each molecule.
+    """
+    # Find the absolute smallest ppm, retaining whether values are negative
+    abs_ppm = df[[id, diff]].copy()
+    abs_ppm["abs_diff"] = abs_ppm[diff].abs()
+    abs_ppm["neg"] = np.where(abs_ppm[diff] < 0, -1, 1)
+    min_ppm = abs_ppm.groupby([id]).min("abs_diff").reset_index()
+    abs_ppm = abs_ppm[[id, "neg"]].merge(min_ppm[[id, "abs_diff"]], on=id, how="outer")
+    # Restore the sign of the smallest ppm and merge with original data
+    abs_ppm["min_ppm"] = abs_ppm["abs_diff"] * abs_ppm["neg"]
+    print(f"df.shape         : {df.shape}")
+    print(f"df.columns       :\n{df.columns}")
+    print(f"df               :\n{df}")
+    print(f"abs_ppm.shape    : {abs_ppm.shape}")
+    print(f"abs_ppm.columns  :\n{abs_ppm.columns}")
+    print(f"abs_ppm          :\n{abs_ppm}")
+    print(f"abs_ppm          :\n{abs_ppm['min_ppm']}")
+    df = pd.concat([df, abs_ppm["min_ppm"]], axis=1)
+    # df = df.merge(abs_ppm[[id, "min_ppm"]], on=id, how="left")
+    # Derive the 'lowest ppm' and 'Inferred Max Intensity'
+    df["lowest ppm"] = np.where(df[diff] == df["min_ppm"], df[diff], np.nan)
+    df["Inferred Max Intensity"] = np.where(df[diff] == df["min_ppm"], df[intensity], np.nan)
+    # Remove temporary variables and sort (NaN > anything else)
+    df.drop(["min_ppm"], axis=1, inplace=True)
+    df.sort_values(by=[id, "lowest ppm"], inplace=True)
+    print(f"df    :\n{df}")
+    return df
+
+
+def consolidate_matches(
+    df: pd.DataFrame,
+    id: str = "ID",
+    inferred: str = "InferredStructure",
+    lowest_ppm: str = "lowest ppm",
+    intensity: str = "Inferred Max Intensity",
+) -> pd.DataFrame:
+    """Consolidate the matched.
+
+    Parameters
+    ----------
+    df: pd.DataFrame
+        Pandas Dataframe to process.
+    id: str
+        Variable (column) within dataframe that identifies molecules.
+    inferred: str
+        Variable (column) within dataframe that lists the inferred structure.
+    lowest_ppm: str
+        Variable (column) within dataframe that defines the lowest PPM. Default 'lowest_ppm'.
+    intensity: str
+        Variable (column) within dataframe that defines the intensity associated with matches.
+
+    Returns
+    -------
+    pd.DataFrameb
+        Pandas Dataframe of matched masses with lowest Parts Per Million and associated intensities.
+    """
+    consolidated = df.dropna(subset=lowest_ppm).copy()
+    consolidated["matched"] = consolidated.groupby(id).cumcount() + 1
+    # Reshape data and concatenate the inferred structure
+    reshaped = consolidated.pivot(index=id, columns="matched", values=inferred)
+    reshaped["lowest ppm"] = reshaped.astype(str).apply(",   ".join, axis=1)
+    reshaped["lowest ppm"] = reshaped["lowest ppm"].str.replace(",   nan", "")
+    reshaped = reshaped["lowest ppm"]
+    # Calculate intensity, we take the mean, if there are equal matches the variance is zero
+    consolidated_intensity = consolidated[[id, inferred, intensity]].groupby([id]).mean(intensity)
+    consolidated = pd.concat([reshaped, consolidated_intensity], axis=1).reset_index()
+    return consolidated

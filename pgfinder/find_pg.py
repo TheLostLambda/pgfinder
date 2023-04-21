@@ -16,6 +16,7 @@ from pgfinder.pgio import (
 from pgfinder.logs.logs import LOGGER_NAME
 from pgfinder.utils import update_config
 from pgfinder.pgio import read_yaml
+from pgfinder.matching import consolidate_matches
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -65,11 +66,15 @@ def process_file(
         enabled_mod_list=mod_list,
         user_ppm=ppm_tolerance,
     )
+    consolidated = consolidate_matches(
+        df=results, id="ID", inferred="InferredStructure", lowest_ppm="lowest ppm", intensity="Inferred Max Intensity"
+    )
     LOGGER.info("Processing complete!")
     dataframe_to_csv_metadata(save_filepath=output_dir, output_dataframe=results)
     LOGGER.info(f"Metadata saved to                   : {output_dir}")
     dataframe_to_csv(save_filepath=output_dir, filename="results.csv", output_dataframe=results)
     LOGGER.info(f"Results saved to                   : {output_dir / 'results.csv'}")
+    consolidated.to_csv(Path(output_dir) / "results_consolidated.csv")
 
 
 def main():
