@@ -48,7 +48,7 @@ def filtered_theo(ftrs_df: pd.DataFrame, theo_list: pd.DataFrame, user_ppm: int)
     # Match theoretical structures to raw data to generate a list of observed structures
     matched_df = matching(ftrs_df, theo_list, user_ppm)
 
-    # Create dataframe containing only theo_mwMonoisotopic & inferredStructure columsn from matched_df
+    # Create dataframe containing only theo_mwMonoisotopic & inferredStructure columns from matched_df
     filtered_df = matched_df[["inferredStructure", "theo_mwMonoisotopic"]].copy()
 
     # Drop all rows with NaN values in the theo_mwMonoisotopic column
@@ -455,9 +455,7 @@ def data_analysis(
     LOGGER.info("Cleaning data")
 
     matched_data_df = calculate_ppm_delta(df=matched_data_df)
-    matched_data_df = determine_most_likely_structure(
-        matched_data_df.reset_index(),
-    )
+    matched_data_df = determine_most_likely_structure(matched_data_df.reset_index(drop=True))
 
     cleaned_df = clean_up(ftrs_df=matched_data_df, mass_to_clean=sodium, time_delta=time_delta_window)
     cleaned_df = clean_up(ftrs_df=cleaned_df, mass_to_clean=potassium, time_delta=time_delta_window)
@@ -543,13 +541,6 @@ def determine_most_likely_structure(
     abs_ppm = abs_ppm[[id, "neg"]].merge(min_ppm[[id, "abs_diff"]], on=id, how="outer")
     # Restore the sign of the smallest ppm and merge with original data
     abs_ppm["min_ppm"] = abs_ppm["abs_diff"] * abs_ppm["neg"]
-    print(f"df.shape         : {df.shape}")
-    print(f"df.columns       :\n{df.columns}")
-    print(f"df               :\n{df}")
-    print(f"abs_ppm.shape    : {abs_ppm.shape}")
-    print(f"abs_ppm.columns  :\n{abs_ppm.columns}")
-    print(f"abs_ppm          :\n{abs_ppm}")
-    print(f"abs_ppm          :\n{abs_ppm['min_ppm']}")
     df = pd.concat([df, abs_ppm["min_ppm"]], axis=1)
     # df = df.merge(abs_ppm[[id, "min_ppm"]], on=id, how="left")
     # Derive the 'lowest ppm' and 'Inferred Max Intensity'
@@ -558,14 +549,14 @@ def determine_most_likely_structure(
     # Remove temporary variables and sort (NaN > anything else)
     df.drop(["min_ppm"], axis=1, inplace=True)
     df.sort_values(by=[id, "lowest ppm"], inplace=True)
-    print(f"df    :\n{df}")
+
     return df
 
 
 def consolidate_matches(
     df: pd.DataFrame,
     id: str = "ID",
-    inferred: str = "InferredStructure",
+    inferred: str = "inferredStructure",
     lowest_ppm: str = "lowest ppm",
     intensity: str = "Inferred Max Intensity",
 ) -> pd.DataFrame:
@@ -599,4 +590,5 @@ def consolidate_matches(
     # Calculate intensity, we take the mean, if there are equal matches the variance is zero
     consolidated_intensity = consolidated[[id, inferred, intensity]].groupby([id]).mean(intensity)
     consolidated = pd.concat([reshaped, consolidated_intensity], axis=1).reset_index()
+
     return consolidated

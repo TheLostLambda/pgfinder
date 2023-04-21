@@ -67,7 +67,7 @@ def process_file(
         user_ppm=ppm_tolerance,
     )
     consolidated = consolidate_matches(
-        df=results, id="ID", inferred="InferredStructure", lowest_ppm="lowest ppm", intensity="Inferred Max Intensity"
+        df=results, id="ID", inferred="inferredStructure", lowest_ppm="lowest ppm", intensity="Inferred Max Intensity"
     )
     LOGGER.info("Processing complete!")
     dataframe_to_csv_metadata(save_filepath=output_dir, output_dataframe=results)
