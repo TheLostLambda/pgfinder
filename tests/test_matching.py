@@ -23,10 +23,9 @@ def test_filtered_theo_no_match(raw_data_no_match, theo_masses, ppm):
         matching.filtered_theo(raw_data_no_match, theo_masses, ppm)
 
 
-def test_calculate_ppm_delta() -> None:
+def test_calculate_ppm_delta(sample_df: pd.DataFrame, target_df: pd.DataFrame) -> None:
     """Test addition of PPM column."""
-    SAMPLE_DF = pd.DataFrame({"obs": [5645.35435454, 1, 879546.3924093], "exp": [3954.49849514, 2, 879546.8974916]})
-    DELTA_DF = pd.DataFrame({"diff_ppm": [427577.82345296827, -500000.0, -0.5742528357381609]})
-    TARGET_DF = pd.concat([SAMPLE_DF, DELTA_DF], axis=1)
+    pd.testing.assert_frame_equal(calculate_ppm_delta(sample_df, observed="obs", theoretical="exp"), target_df)
 
-    pd.testing.assert_frame_equal(calculate_ppm_delta(SAMPLE_DF, observed="obs", theoretical="exp"), TARGET_DF)
+
+# def test_determine_most_likely_structure() -> None:

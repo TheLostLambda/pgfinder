@@ -9,6 +9,7 @@ import pgfinder.validation as validation
 
 DATA_DIR = Path("tests/resources/data")
 
+
 # test_matching.py fixtures
 @pytest.fixture
 def raw_data_filename():
@@ -127,3 +128,16 @@ def ftrs_file_name():
 @pytest.fixture
 def ftrs_test_df(ftrs_file_name):
     return pgio.ms_file_reader(ftrs_file_name)
+
+
+@pytest.fixture
+def sample_df() -> pd.DataFrame:
+    """Return a dummy data frame for tests."""
+    return pd.DataFrame({"obs": [5645.35435454, 1, 879546.3924093], "exp": [3954.49849514, 2, 879546.8974916]})
+
+
+@pytest.fixture
+def target_df(sample_df: pd.DataFrame) -> pd.DataFrame:
+    """Return a target data frame for tests."""
+    DELTA_DF = pd.DataFrame({"diff_ppm": [427577.82345296827, -500000.0, -0.5742528357381609]})
+    return pd.concat([sample_df, DELTA_DF], axis=1)
