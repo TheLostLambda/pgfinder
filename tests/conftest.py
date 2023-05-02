@@ -144,7 +144,7 @@ def sample_df() -> pd.DataFrame:
             "inferred": ["A", "B", "C", "D", "E", "F", "G"],
             "intensity": [1, 2, 3, 4, 5, 6, 6],
         }
-    )
+    ).convert_dtypes()
 
 
 @pytest.fixture
@@ -152,7 +152,7 @@ def df_diff_ppm(sample_df: pd.DataFrame) -> pd.DataFrame:
     """Return a target data frame for tests with diff_pm included."""
     DELTA_DF = pd.DataFrame(
         {
-            "diff_ppm": [
+            "∆ppm": [
                 -500000.0,
                 427577.82345296827,
                 -0.5742528357381609,
@@ -164,7 +164,8 @@ def df_diff_ppm(sample_df: pd.DataFrame) -> pd.DataFrame:
         }
     )
     DELTA_DF = pd.concat([sample_df, DELTA_DF], axis=1)
-    return DELTA_DF[["id", "obs", "exp", "diff_ppm", "inferred", "intensity"]]
+    DELTA_DF = DELTA_DF.convert_dtypes()
+    return DELTA_DF[["id", "obs", "exp", "∆ppm", "inferred", "intensity"]]
 
 
 @pytest.fixture
@@ -187,6 +188,7 @@ def df_lowest_ppm(df_diff_ppm: pd.DataFrame) -> pd.DataFrame:
     LOWEST_DF = pd.concat([df_diff_ppm, LOWEST_DF], axis=1)
     # Test data deliberately setup to require re-ordering so need to reorder target df
     LOWEST_DF = LOWEST_DF.loc[[1, 0, 2, 3, 4, 5, 6], :]
+    LOWEST_DF = LOWEST_DF.convert_dtypes()
     return LOWEST_DF
 
 

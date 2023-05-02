@@ -31,7 +31,8 @@ def test_calculate_ppm_delta(sample_df: pd.DataFrame, df_diff_ppm: pd.DataFrame)
 def test_determine_most_likely_structure(df_diff_ppm: pd.DataFrame, df_lowest_ppm: pd.DataFrame) -> None:
     """Test determining the most likely structure."""
     pd.testing.assert_frame_equal(
-        determine_most_likely_structure(df=df_diff_ppm, id="id", diff="diff_ppm", intensity="intensity"), df_lowest_ppm
+        determine_most_likely_structure(df=df_diff_ppm, id="id", diff="∆ppm", intensity="intensity"),
+        df_lowest_ppm,
     )
 
 

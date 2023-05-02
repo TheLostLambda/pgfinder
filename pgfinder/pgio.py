@@ -87,52 +87,47 @@ def ftrs_reader(file: Union[str, Path]) -> pd.DataFrame:
         Pandas DataFrame of features.
     """
     with sqlite3.connect(file) as db:
-
         sql = "SELECT * FROM Features"
         # Reads sql database into dataframe
         ff = pd.read_sql(sql, db)
-        # adds inferredStructure column
-        ff["inferredStructure"] = np.nan
-        # adds theo_mwMonoisotopic column
-        ff["theo_mwMonoisotopic"] = np.nan
+        # Adds empty "Inferred structure" and "Theo (Da)" columns
+        ff["Inferred structure"] = np.nan
+        ff["Theo (Da)"] = np.nan
         # Renames columns to expected column heading required for data_analysis function
         ff.rename(
             columns={
                 "Id": "ID",
-                "apexRetentionTimeMinutes": "rt",
-                "apexMwMonoisotopic": "mwMonoisotopic",
+                "ionCount": "Ion count",
+                "chargeOrder": "Charge state",
+                "xicStart": "XIC start (min)",
+                "xicEnd": "XIC end (min)",
+                "apexRetentionTimeMinutes": "RT (min)",
+                "apexMwMonoisotopic": "Obs (Da)",
+                "maxIntensity": "Intensity",
                 "maxAveragineCorrelation": "corrMax",
             },
             inplace=True,
         )
-        # Desired column order
+        # Reorder columns in dataframe to desired order, dropping unwanted columns
         cols_order = [
             "ID",
-            "xicStart",
-            "xicEnd",
-            "feature",
-            "corrMax",
-            "ionCount",
-            "chargeOrder",
-            "maxIsotopeCount",
-            "rt",
-            "mwMonoisotopic",
-            "theo_mwMonoisotopic",
-            "inferredStructure",
-            "maxIntensity",
+            "Ion count",
+            "Charge state",
+            "XIC start (min)",
+            "XIC end (min)",
+            "RT (min)",
+            "Obs (Da)",
+            "Theo (Da)",
+            "Inferred structure",
+            "Intensity",
         ]
-        # Reorder columns in dataframe to desired order.
         ff = ff[cols_order]
-        # print(f"FEATURES : \n")
-        # print(f"{ff}")
-
-        ff.drop(columns=["feature", "corrMax", "maxIsotopeCount"], inplace=True)
 
         return ff
 
 
 def theo_masses_reader(input_file: Union[str, Path]) -> pd.DataFrame:
-    """Reads theoretical masses files (csv)
+    """Reads theoretical masses files (csv) returning a Panda Dataframe
 
     Parameters
     ----------
@@ -143,9 +138,8 @@ def theo_masses_reader(input_file: Union[str, Path]) -> pd.DataFrame:
     pd.DataFrame
         Pandas DataFrame of theoretical masses.
     """
-    # reads csv files and converts to dataframe
     theo_masses_df = pd.read_csv(input_file)
-
+    theo_masses_df.columns = ["Inferred structure", "Theo (Da)"]
     theo_masses_df.attrs["file"] = input_file
     LOGGER.info(f"Theoretical masses loaded from      : {input_file}")
     return theo_masses_df
@@ -169,7 +163,7 @@ def theo_masses_upload_reader(upload: dict) -> pd.DataFrame:
     file_contents = upload["content"]
 
     return_df = pd.read_csv(io.BytesIO(file_contents))
-
+    return_df.columns = ["Inferred structure", "Theo (Da)"]
     return_df.attrs["file"] = filename
     return return_df
 
@@ -191,51 +185,41 @@ def maxquant_file_reader(file):
     # reads file into dataframe
     maxquant_df = pd.read_table(file, low_memory=False)
     # adds inferredStructure column
-    maxquant_df["inferredStructure"] = np.nan
+    maxquant_df["Inferred structure"] = np.nan
     # adds theo_mwMonoisotopic column
-    maxquant_df["theo_mwMonoisotopic"] = np.nan
+    maxquant_df["Theo (Da)"] = np.nan
     # insert dataframe index as a column
     maxquant_df.reset_index(level=0, inplace=True)
     # Renames columns to expected column heading required for data_analysis function
     maxquant_df.rename(
         columns={
             "index": "ID",
-            "Retention time": "rt",
-            "Retention length": "rt_length",
-            "Mass": "mwMonoisotopic",
-            "Intensity": "maxIntensity",
+            "Retention time": "RT (min)",
+            "Retention length": "RT (length)",
+            "Mass": "Obs (Da)",
+            "Intensity": "Intensity",
         },
         inplace=True,
     )
-    # Keeps only essential columns, all extraneous columns are left out.
-    focused_maxquant_df = maxquant_df[
-        [
-            "ID",
-            "mwMonoisotopic",
-            "rt",
-            "rt_length",
-            "maxIntensity",
-            "inferredStructure",
-            "theo_mwMonoisotopic",
-        ]
-    ]
-    # Desired column order
+    # Desired variables and order
     cols_order = [
         "ID",
-        "rt",
-        "rt_length",
-        "mwMonoisotopic",
-        "theo_mwMonoisotopic",
-        "inferredStructure",
-        "maxIntensity",
+        "RT (min)",
+        "RT (length)",
+        "Obs (Da)",
+        "Theo (Da)",
+        "Inferred structure",
+        "Intensity",
     ]
     # Reorder columns in dataframe to desired order.
-    focused_maxquant_df = focused_maxquant_df[cols_order]
+    maxquant_df = maxquant_df[cols_order]
 
-    return focused_maxquant_df
+    return maxquant_df
 
 
-def dataframe_to_csv(save_filepath: Union[str, Path], filename: str, output_dataframe: pd.DataFrame) -> None:
+def dataframe_to_csv(
+    save_filepath: Union[str, Path], filename: str, output_dataframe: pd.DataFrame, float_format: str = "%.4f"
+) -> None:
     """
     Writes dataframe to csv file at desired file location
 
@@ -247,15 +231,18 @@ def dataframe_to_csv(save_filepath: Union[str, Path], filename: str, output_data
         Filename to save file to.
     output_dataframe: pd.DataFrame
         Pandas Dataframe to write to csv
+    float_format: str
+        Format for floating point numbers (default 4 decimal places)
     """
     # Combine save location and desired file name with correct formatting for output as csv file.
-    output_dataframe.to_csv(Path(save_filepath) / filename, index=False)
+    output_dataframe.to_csv(Path(save_filepath) / filename, index=False, float_format=float_format)
 
 
 def dataframe_to_csv_metadata(
     output_dataframe: pd.DataFrame,
     save_filepath: Union[str, Path] = None,
     filename: Union[str, Path] = None,
+    float_format: str = "%.4f",
 ) -> Union[str, Path]:
     """If save_filepath is specified return the relative path of the output file, including the filename, otherwise
     return the .csv in the form of a string.
@@ -268,6 +255,8 @@ def dataframe_to_csv_metadata(
         Path to save to.
     filename: Union[str, Path]
         Filename to save to.
+    float_format: str
+        Format for floating point numbers (default 4 decimal places)
 
     Returns
     -------
@@ -290,16 +279,16 @@ def dataframe_to_csv_metadata(
         filename = filename if filename is not None else default_filename()
         save_filepath = Path(save_filepath)
         save_filepath.mkdir(parents=True, exist_ok=True)
-        output_dataframe.to_csv(save_filepath / filename, index=False)
+        output_dataframe.to_csv(save_filepath / filename, index=False, float_format=float_format)
         output = str(save_filepath / filename)
     # We're going to leave it in memory as a string
     else:
-        output = output_dataframe.to_csv(index=False)
+        output = output_dataframe.to_csv(index=False, float_format=float_format)
 
     return output
 
 
-def default_filename() -> str:
+def default_filename(prefix: str = "results_") -> str:
     """Generate a default filename based on the current date/time.
 
     Returns
@@ -309,7 +298,7 @@ def default_filename() -> str:
     """
     now = datetime.now()
     date_time = now.strftime("%Y-%m-%d_%H-%M-%S")
-    filename = "results_" + date_time + ".csv"
+    filename = prefix + date_time + ".csv"
 
     return filename
 
