@@ -7,8 +7,17 @@ import pandas as pd
 
 from pgfinder import MULTIMERS, MOD_TYPE, MASS_TO_CLEAN
 from pgfinder.logs.logs import LOGGER_NAME
+from pgfinder._version import get_versions
 
 LOGGER = logging.getLogger(LOGGER_NAME)
+
+
+def check_df(df, name, head, statement=None):
+    print(f"{head*10} {name} {head*10}")
+    print(f"STATEMENT : {statement}")
+    print(f"Shape           :\n{df.shape}")
+    print(f"Head            :\n{df.head()}")
+    print(f"Tail            :\n{df.tail()}")
 
 
 def calc_ppm_tolerance(mw: float, ppm_tol: int = 10) -> float:
@@ -45,13 +54,28 @@ def filtered_theo(ftrs_df: pd.DataFrame, theo_df: pd.DataFrame, user_ppm: int) -
     pd.DataFrame
         ?
     """
+    check_df(df=ftrs_df, name="ftrs_df", head="#", statement="[filtered_theo] : START")
+    check_df(df=theo_df, name="theo_df", head="#", statement="[filtered_theo] : START")
+    print(f"@@@@@@@@@@@@@@@@@@ user_ppm : {user_ppm}")
     # Match theoretical structures to raw data to generate a list of observed structures
     matched_df = matching(ftrs_df=ftrs_df, matching_df=theo_df, set_ppm=user_ppm)
+    check_df(df=matched_df, name="matched_df", head="#", statement="[filtered_theo] : AFTER matching()")
     # Create dataframe containing only theo_mwMonoisotopic & inferredStructure columns from matched_df
     filtered_df = matched_df[["Inferred structure", "Theo (Da)"]].copy()
-
-    # Drop all rows with NaN values in the theo_mwMonoisotopic column
+    check_df(
+        df=filtered_df,
+        name="filtered_df",
+        head="#",
+        statement="[filtered_theo] : AFTER matching() (COPY OF PREVIOUS SHOULD BE THE SAME)",
+    )
+    # Drop all rows with NaN values in the Theo (Da) column
     filtered_df.dropna(subset=["Theo (Da)"], inplace=True)
+    check_df(
+        df=filtered_df,
+        name="filtered_df",
+        head="#",
+        statement="[filtered_theo] : POST REMOVAL OF ROW WITH NaN for Theo (Da)",
+    )
 
     # Drop duplicate structures and masses
     filtered_df.drop_duplicates(inplace=True)
@@ -188,6 +212,7 @@ def matching(ftrs_df: pd.DataFrame, matching_df: pd.DataFrame, set_ppm: int) -> 
             mw_matches["Inferred structure"] = s
             mw_matches["Theo (Da)"] = round(m, 4)
             matches_df = pd.concat([matches_df, mw_matches])
+    check_df(df=matches_df, name="matches_df", head="~@", statement="[matching] : AFTER MATCHING")
 
     # Merge with raw data
     unmatched = ftrs_df[~ftrs_df.index.isin(matches_df.index)]
@@ -326,38 +351,61 @@ def data_analysis(
     potassium = Decimal("37.9559")
     # retention time window to look in for in source decay products (rt of parent ion plus or minus time_delta)
     time_delta_window = rt_window
+    check_df(df=raw_data_df, name="raw_data_df", head="#", statement="[data_analysis] : START")
+    check_df(df=theo_masses_df, name="theo_masses_df", head="#", statement="[data_analysis] : START")
 
     # FIXME : Should these be .copy() since Pandas DataFrames will be modified by reference I think and so any change to
     # theo or ff cascades back to theo_masses_df and raw_data_df automatically (unless that is the intention)?
     theo = theo_masses_df
     ff = raw_data_df
+    check_df(df=ff, name="ff", head="~", statement="[data_analysis] : COPY OF raw_data_df")
+    check_df(df=theo, name="theo", head="~", statement="[data_analysis] : COPY OF theo_masses_df")
 
+    print(f"VERSION VERSION VERSION : {get_versions()['version']}")
     LOGGER.info("Filtering theoretical masses by observed masses")
     obs_monomers_df = filtered_theo(ftrs_df=ff, theo_df=theo, user_ppm=user_ppm)
-
+    check_df(df=obs_monomers_df, name="obs_monomers_df", head="~", statement="[data_analysis] : POST FILTERING")
     # FIXME : Is this the logic that is required? It seems only one type of multimers will ever get built but is it not
     #         possible that there are multiple types listed in the enbaled_mod_list?
+    # FIXME : Tests of the impacts here are poor.
     if "Multimers" in enabled_mod_list:
         LOGGER.info("Building multimers from obs muropeptides")
         theo_multimers_df = multimer_builder(obs_monomers_df)
         LOGGER.info("Filtering theoretical multimers by observed")
         obs_multimers_df = filtered_theo(ff, theo_multimers_df, user_ppm)
+        check_df(df=theo_multimers_df, name="theo_multimers_df", head="~", statement="[data_analysis] : Multimers")
+        check_df(df=obs_multimers_df, name="obs_multimers_df", head="~", statement="[data_analysis] : Multimers")
     elif "multimers_Glyco" in enabled_mod_list:
         LOGGER.info("Building multimers from obs muropeptides")
         theo_multimers_df = multimer_builder(obs_monomers_df, 1)
         LOGGER.info("Filtering theoretical multimers by observed")
         obs_multimers_df = filtered_theo(ff, theo_multimers_df, user_ppm)
+        check_df(
+            df=theo_multimers_df, name="theo_multimers_df", head="~", statement="[data_analysis] : Multimers_Glyco"
+        )
+        check_df(df=obs_multimers_df, name="obs_multimers_df", head="~", statement="[data_analysis] : Multimers_Glyco")
     elif "Multimers_Lac" in enabled_mod_list:
         LOGGER.info("Building multimers_Lac from obs muropeptides")
         theo_multimers_df = multimer_builder(obs_monomers_df, 2)
         LOGGER.info("Filtering theoretical multimers by observed")
         obs_multimers_df = filtered_theo(ff, theo_multimers_df, user_ppm)
+        check_df(df=theo_multimers_df, name="theo_multimers_df", head="~", statement="[data_analysis] : Multimers_Lac")
+        check_df(df=obs_multimers_df, name="obs_multimers_df", head="~", statement="[data_analysis] : Multimers_Lac")
     else:
         obs_multimers_df = pd.DataFrame()
+        check_df(df=obs_multimers_df, name="obs_multimers_df", head="~", statement="[data_analysis] : NO MULTIMERS")
 
     LOGGER.info("Building custom search file")
-    obs_frames = [obs_monomers_df, obs_multimers_df]
-    obs_theo_df = pd.concat(obs_frames).reset_index(drop=True)
+    check_df(df=obs_monomers_df, name="obs_monomers_df", head="~", statement="[data_analysis] : BEFORE CONCAT")
+    check_df(df=obs_multimers_df, name="obs_multimers_df", head="~", statement="[data_analysis] : BEFORE CONCAT")
+
+    obs_theo_df = pd.concat([obs_monomers_df, obs_multimers_df]).reset_index(drop=True)
+    check_df(
+        df=obs_theo_df,
+        name="obs_theo_df",
+        head="~",
+        statement="[data_analysis] : AFTER CONCAT should be sum of previous two",
+    )
 
     LOGGER.info("Generating variants")
 
@@ -493,7 +541,11 @@ def calculate_ppm_delta(
 
 
 def determine_most_likely_structure(
-    df: pd.DataFrame, id: str = "ID", diff: str = "∆ppm", intensity: str = "Intensity"
+    df: pd.DataFrame,
+    observed_id: str = "ID",
+    inferred_structure: str = "Inferred structure",
+    diff: str = "∆ppm",
+    intensity: str = "Intensity",
 ) -> pd.DataFrame:
     """Determine the most likely structure.
 
@@ -501,7 +553,9 @@ def determine_most_likely_structure(
     ----------
     df: pd.DataFrame
         Pandas Data frame for modification.
-    id: str
+    observed_id: str
+        Variable (column) within dataframe that defines the ID of observed molecules.
+    inferred_structure: str
         Variable (column) within dataframe that defines the molecule identifier.
     diff: str
         Variable (column) within the dataframe that defines the difference in Parts Per Million (PPM). Default
@@ -516,21 +570,29 @@ def determine_most_likely_structure(
     intensity. The rows are sorted by molecule ID and ordered by the absolute difference in PPM within each molecule.
     """
     # Find the absolute smallest ppm, retaining whether values are negative
-    abs_ppm = df[[id, diff]].copy()
+    abs_ppm = df[[observed_id, inferred_structure, diff]].copy()
     abs_ppm["abs_diff"] = abs_ppm[diff].abs()
     abs_ppm["neg"] = np.where(abs_ppm[diff] < 0, -1, 1)
-    min_ppm = abs_ppm.groupby([id]).min("abs_diff").reset_index()
-    abs_ppm = abs_ppm[[id, "neg"]].merge(min_ppm[[id, "abs_diff"]], on=id, how="outer")
+    # min_ppm = abs_ppm.groupby([observed_id]).min("abs_diff").reset_index()
+    # abs_ppm = abs_ppm[[inferred_structure, "neg"]].merge(
+    #     min_ppm[[inferred_structure, "abs_diff"]], on=inferred_structure, how="outer"
+    # )
+    min_ppm = abs_ppm.groupby([observed_id]).min("abs_diff").reset_index()
+    abs_ppm = abs_ppm[[observed_id, "neg"]].merge(min_ppm[[observed_id, "abs_diff"]], on=observed_id, how="outer")
     # Restore the sign of the smallest ppm and merge with original data
     abs_ppm["min_ppm"] = abs_ppm["abs_diff"] * abs_ppm["neg"]
-    df = pd.concat([df, abs_ppm["min_ppm"]], axis=1)
-    # df = df.merge(abs_ppm[[id, "min_ppm"]], on=id, how="left")
+    df = pd.concat([df, abs_ppm[["min_ppm"]]], axis=1)
     # Derive the 'lowest ppm' and 'Inferred Max Intensity'
-    df["lowest ppm"] = np.where(df[diff] == df["min_ppm"], df[diff], np.nan)
-    df["Inferred Max Intensity"] = np.where(df[diff] == df["min_ppm"], df[intensity], np.nan)
+    df["lowest ∆ppm"] = np.where(df[diff] == df["min_ppm"], df[diff], np.nan)
+    df["lowest ∆ppm Intensity"] = np.where(df[diff] == df["min_ppm"], df[intensity], np.nan)
     # Remove temporary variables and sort (NaN > anything else)
-    df.drop(["min_ppm"], axis=1, inplace=True)
-    df.sort_values(by=[id, "lowest ppm"], inplace=True)
+    # print(f"BEFORE : {df[df[inferred_structure] == 'GM-AEJC|1'].head(20)}")
+    print(f"BEFORE : {df[df['ID'] == 1750].head(20)}")
+    df["abs_diff"] = df[diff].abs()
+    df.sort_values(by=["ID", inferred_structure, "abs_diff"], inplace=True)
+    # print(f"AFTER  : {df[df[inferred_structure] == 'GM-AEJC|1'].head(20)}")
+    print(f"AFTER  : {df[df['ID'] == 1750].head(20)}")
+    df.drop(["abs_diff", "min_ppm"], axis=1, inplace=True)
     # Convert data types
     df = df.convert_dtypes()
     return df
@@ -540,8 +602,8 @@ def consolidate_matches(
     df: pd.DataFrame,
     id: str = "ID",
     inferred: str = "Inferred structure",
-    lowest_ppm: str = "lowest ppm",
-    intensity: str = "Inferred Max Intensity",
+    lowest_ppm: str = "lowest ∆ppm",
+    intensity: str = "lowest ∆ppm Intensity",
 ) -> pd.DataFrame:
     """Consolidate the matched.
 
@@ -565,13 +627,13 @@ def consolidate_matches(
     """
     consolidated = df.dropna(subset=lowest_ppm).copy()
     consolidated["matched"] = consolidated.groupby(id).cumcount() + 1
-    # Reshape data and concatenate the inferred structure
+    # Reshape data
     reshaped = consolidated.pivot(index=id, columns="matched", values=inferred)
-    reshaped["lowest ppm"] = reshaped.astype(str).apply(",   ".join, axis=1)
-    reshaped["lowest ppm"] = reshaped["lowest ppm"].str.replace(",   nan", "")
-    reshaped = reshaped["lowest ppm"]
+    # reshaped["lowest ppm"] = reshaped.astype(str).apply(",   ".join, axis=1)
+    # reshaped["lowest ppm"] = reshaped["lowest ppm"].str.replace(",   nan", "")
+    # reshaped = reshaped["lowest ppm"]
     # Calculate intensity, we take the mean, if there are equal matches the variance is zero
-    consolidated_intensity = consolidated[[id, inferred, intensity]].groupby([id]).mean(intensity)
+    consolidated_intensity = consolidated[[id, inferred, intensity]].groupby([inferred]).mean(intensity)
     consolidated = pd.concat([reshaped, consolidated_intensity], axis=1).reset_index()
 
     return consolidated

@@ -13,6 +13,7 @@ import yaml
 from ruamel.yaml import YAML, YAMLError
 
 from pgfinder.logs.logs import LOGGER_NAME
+from pgfinder._version import get_versions
 
 LOGGER = logging.getLogger(LOGGER_NAME)
 
@@ -40,6 +41,8 @@ def ms_file_reader(file) -> pd.DataFrame:
 
     return_df.attrs["file"] = filename
     LOGGER.info(f"Mass spectroscopy file loaded from : {file}")
+    print(return_df.head())
+    print(return_df.tail())
     return return_df
 
 
@@ -70,6 +73,9 @@ def ms_upload_reader(upload: dict) -> pd.DataFrame:
         raise ValueError("Unknown file type.")
 
     return_df.attrs["file"] = filename
+    LOGGER.info(f"Mass spectroscopy file loaded from  : {filename}")
+    print(return_df.head())
+    print(return_df.tail())
     return return_df
 
 
@@ -141,7 +147,9 @@ def theo_masses_reader(input_file: Union[str, Path]) -> pd.DataFrame:
     theo_masses_df = pd.read_csv(input_file)
     theo_masses_df.columns = ["Inferred structure", "Theo (Da)"]
     theo_masses_df.attrs["file"] = input_file
-    LOGGER.info(f"Theoretical masses loaded from      : {input_file}")
+    LOGGER.info(f"Theoretical masses loaded from     : {input_file}")
+    print(theo_masses_df.head())
+    print(theo_masses_df.tail())
     return theo_masses_df
 
 
@@ -162,10 +170,13 @@ def theo_masses_upload_reader(upload: dict) -> pd.DataFrame:
     filename = upload["name"]
     file_contents = upload["content"]
 
-    return_df = pd.read_csv(io.BytesIO(file_contents))
-    return_df.columns = ["Inferred structure", "Theo (Da)"]
-    return_df.attrs["file"] = filename
-    return return_df
+    theo_masses_df = pd.read_csv(io.BytesIO(file_contents))
+    theo_masses_df.columns = ["Inferred structure", "Theo (Da)"]
+    theo_masses_df.attrs["file"] = filename
+    LOGGER.info(f"Theoretical masses loaded from     : {filename}")
+    print(theo_masses_df.head())
+    print(theo_masses_df.tail())
+    return theo_masses_df
 
 
 def maxquant_file_reader(file):
@@ -267,6 +278,7 @@ def dataframe_to_csv_metadata(
         "rt_window": output_dataframe.attrs["rt_window"],
         "modifications": output_dataframe.attrs["modifications"],
         "ppm": output_dataframe.attrs["ppm"],
+        "version": get_versions()["version"],
     }
 
     metadata_string = yaml.dump(metadata)

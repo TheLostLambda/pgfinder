@@ -88,7 +88,7 @@ def process_file(
         user_ppm=ppm_tolerance,
     )
     consolidated = consolidate_matches(
-        df=results, id="ID", inferred="Inferred structure", lowest_ppm="lowest ppm", intensity="Inferred Max Intensity"
+        df=results, id="ID", inferred="Inferred structure", lowest_ppm="lowest ∆ppm", intensity="lowest ∆ppm Intensity"
     )
     LOGGER.info("Processing complete!")
     dataframe_to_csv_metadata(
@@ -101,8 +101,9 @@ def process_file(
         output_dataframe=results,
         float_format=f"%.{str(float_format)}f",
     )
-    LOGGER.info(f"Results saved to                   : {output_dir / 'results.csv'}")
+    LOGGER.info(f"Results saved to                    : {output_dir / 'results.csv'}")
     consolidated.to_csv(Path(output_dir) / "results_consolidated.csv")
+    LOGGER.info(f"Consolidated results saved to       : {output_dir / 'results_consolidated.csv'}")
 
 
 def main():
@@ -120,7 +121,7 @@ def main():
         LOGGER.info("Default configuration file loaded.")
     config = update_config(config, args)
 
-    LOGGER.info(f'Input file                         : {config["input_file"]}')
+    # LOGGER.info(f'Input file                         : {config["input_file"]}')
 
     # Optionally ignore all warnings or just show deprecation warnings
     if config["warnings"] == "ignore":
