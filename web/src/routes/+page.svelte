@@ -86,16 +86,15 @@
 	});
 
 	// Reactively compute if Smithereens is ready
-	$: ready = !loading && !processing && pyio.fragmentsLibrary !== undefined && pyio.muropeptidesLibrary !== undefined;
+	$: SmithereensReady = !loading && !processing && pyio.fragmentsLibrary !== undefined && pyio.muropeptidesLibrary !== undefined;
 
 	// Send data to Smithereens for processing
 	function runSmithereensAnalysis() {
 		pgfinder?.postMessage(pyio);
 		processing = true;
 	}
-
 	// Reactively compute if PGFinder is ready
-	$: ready = !loading && !processing && pyio.msData !== undefined && pyio.massLibrary !== undefined;
+	$: PGFinderReady = !loading && !processing && pyio.msData !== undefined && pyio.massLibrary !== undefined;
 
 	// Send data to PGFinder for processing
 	function runPGFinderAnalysis() {
@@ -135,7 +134,7 @@
 			</section>
 			<section class="flex flex-col space-y-4 justify-center p-4">
 				<MuropeptidesDataUploader bind:value={pyio.muropeptidesLibrary} {muropeptidesLibraries} />
-				<button type="button" class="btn variant-filled" on:click={runSmithereensAnalysis} disabled={!ready}>
+				<button type="button" class="btn variant-filled" on:click={runSmithereensAnalysis} disabled={!SmithereensReady}>
 					Build database
 				</button>
 				{#if processing}
@@ -157,7 +156,7 @@
 					bind:advancedMode
 					{allowedModifications}
 				/>
-				<button type="button" class="btn variant-filled" on:click={runPGFinderAnalysis} disabled={!ready}>
+				<button type="button" class="btn variant-filled" on:click={runPGFinderAnalysis} disabled={!PGFinderReady}>
 					Run Analysis
 				</button>
 				{#if processing}
