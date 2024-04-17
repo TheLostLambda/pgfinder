@@ -11,7 +11,9 @@
         <input
           type="radio"
           name="fragments-library"
+          value={{ name: librariesFragments['File'], content: null }}
         />
+<!--        <p class="grow"><i>{speciesFragments}</i> (<code>{librariesFragments['File']}</code>)</p> -->
         <p class="grow"><i>{speciesFragments}</i></p>
         <Tooltip popupId="library{speciesIdFragments}">
           {librariesFragments['Description']}

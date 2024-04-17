@@ -11,7 +11,9 @@
         <input
           type="radio"
           name="muropeptides-library"
+          value={{ name: librariesMuropeptides['File'], content: null }}
         />
+<!--        <p class="grow"><i>{speciesMuropeptides}</i> (<code>{librariesMuropeptides['File']}</code>)</p> -->
         <p class="grow"><i>{speciesMuropeptides}</i></p>
         <Tooltip popupId="library{speciesIdMuropeptides}">
           {librariesMuropeptides['Description']}

@@ -90,6 +90,7 @@
 
 	// Send data to Smithereens for processing
 	function runSmithereensAnalysis() {
+    // TODO - Switch this to run smithereens WA using pyio.fragmentsLibrary and pyio.muropeptidesLibrary
 		pgfinder?.postMessage(pyio);
 		processing = true;
 	}
