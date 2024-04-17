@@ -85,11 +85,20 @@
 		};
 	});
 
+	// Reactively compute if Smithereens is ready
+	$: ready = !loading && !processing && pyio.fragmentsLibrary !== undefined && pyio.muropeptidesLibrary !== undefined;
+
+	// Send data to Smithereens for processing
+	function runSmithereensAnalysis() {
+		pgfinder?.postMessage(pyio);
+		processing = true;
+	}
+
 	// Reactively compute if PGFinder is ready
 	$: ready = !loading && !processing && pyio.msData !== undefined && pyio.massLibrary !== undefined;
 
 	// Send data to PGFinder for processing
-	function runAnalysis() {
+	function runPGFinderAnalysis() {
 		pgfinder?.postMessage(pyio);
 		processing = true;
 	}
@@ -122,11 +131,11 @@
         <!-- Smithereens -->
 		<div class="card m-2 w-[20rem] {uiWidth} max-w-[90%] {animateWidth}">
 			<section class="flex flex-col space-y-4 justify-center p-4">
-				<FragmentsDataUploader bind:value={pyio.fragmentsData} {fragmentsLibraries} />
+				<FragmentsDataUploader bind:value={pyio.fragmentsLibrary} {fragmentsLibraries} />
 			</section>
 			<section class="flex flex-col space-y-4 justify-center p-4">
-				<MuropeptidesDataUploader bind:value={pyio.muropeptidesData} {muropeptidesLibraries} />
-				<button type="button" class="btn variant-filled" on:click={runAnalysis} disabled={!ready}>
+				<MuropeptidesDataUploader bind:value={pyio.muropeptidesLibrary} {muropeptidesLibraries} />
+				<button type="button" class="btn variant-filled" on:click={runSmithereensAnalysis} disabled={!ready}>
 					Build database
 				</button>
 				{#if processing}
@@ -148,7 +157,7 @@
 					bind:advancedMode
 					{allowedModifications}
 				/>
-				<button type="button" class="btn variant-filled" on:click={runAnalysis} disabled={!ready}>
+				<button type="button" class="btn variant-filled" on:click={runPGFinderAnalysis} disabled={!ready}>
 					Run Analysis
 				</button>
 				{#if processing}
