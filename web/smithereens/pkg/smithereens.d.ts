@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* tslint:disable */
 /* eslint-disable */
 /**
@@ -54,3 +55,26 @@ export function initSync(module: SyncInitInput): InitOutput;
 * @returns {Promise<InitOutput>}
 */
 export default function __wbg_init (module_or_path?: InitInput | Promise<InitInput>): Promise<InitOutput>;
+||||||| parent of 5d68736 (Adding & configuring vite-plugin-wasm-pack)
+=======
+/* tslint:disable */
+/* eslint-disable */
+/**
+* @param {Peptidoglycan} precursor
+* @returns {string}
+*/
+export function pg_to_fragments(precursor: Peptidoglycan): string;
+/**
+*/
+export class Peptidoglycan {
+  free(): void;
+/**
+* @param {string} structure
+*/
+  constructor(structure: string);
+/**
+* @returns {string}
+*/
+  monoisotopic_mass(): string;
+}
+>>>>>>> 5d68736 (Adding & configuring vite-plugin-wasm-pack)

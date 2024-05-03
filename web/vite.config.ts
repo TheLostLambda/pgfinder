@@ -5,6 +5,7 @@ import wasmPack from 'vite-plugin-wasm-pack';
 
 export default defineConfig({
 	plugins: [sveltekit(), purgeCss(), wasmPack('./smithereens')],
+	// plugins: [sveltekit(), purgeCss ()],
 	worker: {
 		format: 'es'
 	}

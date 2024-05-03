@@ -46,8 +46,10 @@
     "@fortawesome/free-solid-svg-icons": "^6.5.1",
     "js-file-download": "^0.4.12",
     "playwright": "^1.41.2",
+    "pnpm": "^9.0.6",
     "pyodide": "^0.23.4",
     "svelte-fa": "^3.0.4",
-    "vite-plugin-top-level-await": "^1.4.1"
+    "vite-plugin-top-level-await": "^1.4.1",
+    "vite-plugin-wasm-pack": "^0.1.12"
   }
 }

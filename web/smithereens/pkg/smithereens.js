@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 let wasm;
 
 const cachedTextDecoder = (typeof TextDecoder !== 'undefined' ? new TextDecoder('utf-8', { ignoreBOM: true, fatal: true }) : { decode: () => { throw Error('TextDecoder not available') } } );
@@ -430,3 +431,10 @@ async function __wbg_init(input) {
 
 export { initSync }
 export default __wbg_init;
+||||||| parent of 5d68736 (Adding & configuring vite-plugin-wasm-pack)
+=======
+import * as wasm from "./smithereens_bg.wasm";
+import { __wbg_set_wasm } from "./smithereens_bg.js";
+__wbg_set_wasm(wasm);
+export * from "./smithereens_bg.js";
+>>>>>>> 5d68736 (Adding & configuring vite-plugin-wasm-pack)
