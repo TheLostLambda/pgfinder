@@ -5,6 +5,11 @@ import { defaultPyio } from '$lib/constants';
 const pyio: Pyio = { ...defaultPyio };
 let pyodide: PyodideInterface;
 
+// 2024-05-03 - Throws an error
+// TypeError [ERR_UNKNOWN_FILE_EXTENSION]: Unknown file extension ".wasm" for
+//     /home/neil/work/git/hub/Mesnage-Org/pgfinder/web/node_modules/smithereens/smithereens_bg.wasm
+// import init, { Peptidoglycan, pg_to_fragments } from 'smithereens';
+
 // Maybe someday (once top-level await is even more universal), I should get
 // rid of this useless, immediately-called function...
 (async () => {

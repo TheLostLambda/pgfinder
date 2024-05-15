@@ -16,5 +16,6 @@
   ],
   "dependencies": {
     "vite-plugin-wasm": "^3.3.0"
+    "vite-plugin-wasm-pack": "^0.1.12"
   }
 }

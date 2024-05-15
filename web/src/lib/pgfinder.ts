@@ -31,13 +31,6 @@ let pyodide: PyodideInterface;
 	const jsonMass = await pyodide.runPythonAsync('mass_library_index()');
 	const massLibraries = JSON.parse(jsonMass);
 
-    // Load lib/pgfginder/reference_masses/index.json which details the available reference masses
-    const jsonFragments = await pyodide.runPythonAsync('reference_mass_library_index()');
-    const fragmentsLibraries = JSON.parse(jsonFragments);
-
-    // Load lib/pgfginder/target_structures/index.json which details the available target_structures/muropeptides
-    const jsonMuropeptides = await pyodide.runPythonAsync('target_structure_library_index()');
-    const muropeptidesLibraries = JSON.parse(jsonMuropeptides);
 
 	postMessage({
 		type: 'Ready',
@@ -45,8 +38,6 @@ let pyodide: PyodideInterface;
 			pgfinderVersion,
 			allowedModifications,
 			massLibraries,
-            fragmentsLibraries,
-            muropeptidesLibraries
 		}
 	});
 })();
@@ -79,19 +70,7 @@ function postError(error: PythonError) {
 	});
 }
 
-// 20240105 - Need to distinguish this from the above so that they respond to the different "messages" should be
-//            in response to runPGFinderAnalysis() function being called (which happens when 'Run Analysis' button is
-//            clicked)
 onmessage = async ({ data }) => {
 	Object.assign(pyio, data);
 	pyodide.runPythonAsync('run_analysis()').then(postResult).catch(postError);
-};
-
-
-// 20240105 - Need to distinguish this from the above so that they respond to the different "messages" should be
-//            in response to runSmithereens() function being called (which happens when 'Build Database' button is
-//            clicked)
-loadlibraries = async ({ data }) => {
-	Object.assign(pyio, data);
-	pyodide.runPythonAsync('load_libraries()').then(postResult).catch(postError);
 };

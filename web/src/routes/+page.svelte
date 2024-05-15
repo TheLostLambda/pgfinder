@@ -27,13 +27,21 @@
 	// PGFinder and JS Imports
 	import PGFinder from '$lib/pgfinder.ts?worker';
 	import { defaultPyio } from '$lib/constants';
+
     // Import vite-plugin-wasm and Smithereens components
+    // 2024-05-03 - Throws an error
+    // TypeError [ERR_UNKNOWN_FILE_EXTENSION]: Unknown file extension ".wasm" for
+    //     /home/neil/work/git/hub/Mesnage-Org/pgfinder/web/node_modules/smithereens/smithereens_bg.wasm
     import init, { Peptidoglycan, pg_to_fragments } from 'smithereens';
-    // 2024-05-01 - Tried the example at https://vitejs.dev/guide/features.html#webassembly but I've clearly not understood
-    // import init from "$lib/smithereens?init";
+    onMount(() => {
+        init().then(() => {
+        	console.log("smithereens wasm loaded!");
+        })
+    })
     // init().then((instance) => {
     //     instance.exports.
     // })
+
 
 	import fileDownload from 'js-file-download';
 	import ErrorModal from './ErrorModal.svelte';
